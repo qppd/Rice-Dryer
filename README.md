@@ -248,34 +248,6 @@ This project is licensed under the MIT License. You are free to use, modify, and
 ## About the Developer
 This project is developed by **Sajed Lopez Mendoza**, a full-stack developer and embedded systems engineer based in Quezon Province, Philippines.
 
-### Professional Background
-Sajed specializes in IoT systems, embedded hardware, mobile and web development, and renewable energy integration. With experience as a Full Stack Developer at Key Solutions Inc. and Android Development Trainer at Infinitech Training Center, Sajed brings extensive expertise in real-world applications.
-
-### Technical Expertise
-- **Frontend**: HTML5, CSS3, JavaScript, React, Vue.js
-- **Backend**: PHP, Laravel, Node.js, Python, Django
-- **Mobile**: Android Studio, Java, Kotlin, Flutter
-- **Embedded Systems**: ESP32, Raspberry Pi, Arduino
-- **Machine Learning**: TensorFlow, PyTorch, OpenCV
-- **Databases**: MySQL, PostgreSQL, MongoDB, Firebase
-- **DevOps**: Git, SSH, MQTT, Docker
-
-### Notable Projects
-- **CNC Jog Trainer**: Modern GUI for GRBL-based CNC machines
-- **Umbrella Holder**: Microcontroller-based dryer with PID-controlled heating
-- **IoT Smart Fan**: Intelligent climate control system
-- **Chits Exchanger**: Automated currency exchange system
-- **IoT Bike Tracker**: Solar-powered GPS tracking with GSM
-- **Smart Cabinet**: Advanced automated storage solution
-
-### QPPD Initiative
-Sajed is the founder of **QPPD (Quezon Province Programmers/Developers)**, a community-driven initiative to promote technology development and innovation in the Quezon Province region. QPPD focuses on:
-- Building practical IoT and embedded systems solutions
-- Developing full-stack web and mobile applications
-- Promoting renewable energy integration in technology
-- Providing training and mentorship to aspiring developers
-- Creating open-source projects for educational purposes
-
 ## Contact
 For questions, support, or collaboration opportunities:
 
