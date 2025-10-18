@@ -31,6 +31,7 @@ This project is part of the QPPD (Quezon Province Programmers/Developers) portfo
 - **Adjustable Parameters**: Two potentiometers enable fine-tuning of temperature thresholds and drying duration.
 - **Visual Feedback**: 20x4 I2C LCD display shows real-time status, sensor readings, and system parameters.
 - **Modular Design**: Object-oriented architecture with encapsulated C++ classes for each hardware component.
+- **Solar Powered**: Operates using solar energy with battery backup and MPPT solar charging for reliable off-grid performance.
 - **Energy Efficient**: Optimized power consumption suitable for continuous operation.
 - **Scalable**: Easy to expand with additional sensors or control mechanisms.
 
@@ -40,6 +41,7 @@ The RiceDryer system follows a modular architecture:
 2. **Control Layer**: ESP32 microcontroller processing sensor data and executing control logic.
 3. **Actuator Layer**: Solid-state relays managing high-power devices—a heater and exhaust fans—for automated drying and ventilation.
 4. **Interface Layer**: Buttons, potentiometers, and LCD for user interaction.
+5. **Power Layer**: Solar panel, battery storage, and MPPT solar charge controller for efficient energy management and off-grid operation.
 
 ## Hardware Components
 - **ESP32 Development Board**: Main microcontroller with WiFi and Bluetooth capabilities.
@@ -50,6 +52,9 @@ The RiceDryer system follows a modular architecture:
 - **20x4 I2C LCD Display**: Large character display for comprehensive status information.
 - **Power Supply**: 5V regulated power for ESP32 and peripherals.
 - **Jumper Wires and Breadboard**: For prototyping and connections.
+- **Solar Panel**: Provides renewable energy for the system.
+- **Battery Storage**: Ensures continuous operation during low sunlight or nighttime.
+- **MPPT Solar Charge Controller**: Maximizes solar charging efficiency and protects battery health.
 
 ## Software Components
 - **Arduino IDE**: Development environment for ESP32 programming.
