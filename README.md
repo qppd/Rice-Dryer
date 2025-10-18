@@ -26,12 +26,13 @@ This project is part of the QPPD (Quezon Province Programmers/Developers) portfo
 
 ## Features
 - **Real-time Environmental Monitoring**: DHT22 sensor provides accurate temperature and humidity measurements.
-- **Automated Control System**: Two solid-state relays for controlling a heater and exhaust fans, enabling precise drying and ventilation cycles.
-- **User Interface**: Interactive control via two tactile buttons for mode selection and system operation.
-- **Adjustable Parameters**: Two potentiometers enable fine-tuning of temperature thresholds and drying duration.
-- **Visual Feedback**: 20x4 I2C LCD display shows real-time status, sensor readings, and system parameters.
+- **Automated Control System**: Solid-state relay for controlling a heater, enabling precise drying cycles.
+- **User Interface**: Interactive control via tactile button for system operation and test mode.
+- **Adjustable Parameters**: Potentiometer enables fine-tuning of temperature threshold.
+- **Visual Feedback**: 16x2 I2C LCD display shows real-time status, sensor readings, and system parameters.
 - **Modular Design**: Object-oriented architecture with encapsulated C++ classes for each hardware component.
-- **Solar Powered**: Operates using solar energy with battery backup and MPPT solar charging for reliable off-grid performance.
+- **Centralized Pin Configuration**: All pin and hardware settings are managed in `PinConfig.h` for easy hardware changes.
+- **Component Test Mode**: Hold the button at startup to enter a test menu for verifying DHT22, Potentiometer, SSR, and LCD operation.
 - **Energy Efficient**: Optimized power consumption suitable for continuous operation.
 - **Scalable**: Easy to expand with additional sensors or control mechanisms.
 
@@ -71,6 +72,7 @@ RICE_DRYER/
 │   └── esp32/
 │       └── RiceDryer/
 │           ├── RiceDryer.ino         # Main Arduino sketch
+│           ├── PinConfig.h           # Centralized pin configuration
 │           ├── DHT22Sensor.h         # DHT22 sensor header file
 │           ├── DHT22Sensor.cpp       # DHT22 sensor implementation
 │           ├── SSR.h                 # Solid State Relay header file
@@ -136,24 +138,22 @@ Or download the ZIP file and extract to your local machine.
 ### Basic Operation
 1. **Power On**: Connect the ESP32 to a power source.
 2. **Initialization**: The LCD will display startup information.
-3. **Monitoring**: Real-time temperature and humidity readings appear on the LCD.
-4. **Control**: Use buttons to start/stop the drying process or switch modes.
-5. **Adjustment**: Turn potentiometers to adjust temperature thresholds and timing.
-6. **Automation**: Relays automatically activate based on sensor readings and user settings.
+3. **Test Mode**: Hold the button during power-up to enter component test mode. Cycle through and test DHT22, Potentiometer, SSR, and LCD using the button.
+4. **Monitoring**: Real-time temperature and humidity readings appear on the LCD.
+5. **Control**: Use the button to start/stop the drying process.
+6. **Adjustment**: Turn the potentiometer to adjust temperature threshold.
+7. **Automation**: Relay automatically activates based on sensor readings and user settings.
 
 ### Display Layout
-- **Line 1**: Current temperature reading
-- **Line 2**: Current humidity reading
-- **Line 3**: System status (Running, Idle, Error)
-- **Line 4**: User-defined parameters (threshold, timer)
+- **Line 1**: System status (Drying ON/OFF)
+- **Line 2**: Current temperature, humidity, and setpoint
 
 ### Button Functions
-- **Button 1**: Start/Stop drying operation
-- **Button 2**: Mode selection (Manual, Auto, Settings)
+- **Button**: Start/Stop drying operation
+- **Button (held at startup)**: Enter test mode for component testing
 
 ### Potentiometer Functions
-- **Potentiometer 1**: Adjust temperature threshold (0-100 degrees Celsius)
-- **Potentiometer 2**: Set drying duration (0-24 hours)
+- **Potentiometer**: Adjust temperature threshold (30-60 degrees Celsius)
 
 ## Code Structure
 The project follows object-oriented programming principles with encapsulated classes:
