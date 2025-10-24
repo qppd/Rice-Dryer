@@ -2,14 +2,6 @@
 
 IoT-enabled Rice Dryer system with ESP32 hardware and Android application for remote monitoring and control.
 
-## Project Status
-
-- ESP32 Firmware: 100% Complete
-- Android Application: 40% Complete
-- Overall Progress: 60% Complete
-- Estimated Time to MVP: 2-3 weeks
-- Last Updated: October 24, 2025
-
 ## Table of Contents
 
 1. [Features](#features)
