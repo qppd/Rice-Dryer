@@ -1,0 +1,21 @@
+#ifndef FIREBASE_CONFIG_H
+#define FIREBASE_CONFIG_H
+
+#include <Arduino.h>
+
+// Firebase Configuration Template
+// INSTRUCTIONS:
+// 1. Copy this file to FirebaseConfig.cpp
+// 2. Replace the placeholder values with your actual Firebase credentials
+// 3. DO NOT commit FirebaseConfig.cpp to version control
+
+class FirebaseConfig {
+public:
+    static const char* getFirebaseHost();
+    static const char* getFirebaseAuth();
+    static const char* getDatabaseURL();
+    static const char* getApiKey();
+    static const char* getProjectId();
+};
+
+#endif

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary">#009688</color>
+    <color name="primary_dark">#00796B</color>
+    <color name="primary_light">#B2DFDB</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#FF5722</color>
+    <color name="secondary_dark">#E64A19</color>
+    <color name="secondary_light">#FFCCBC</color>
+    
+    <!-- Background Colors -->
+    <color name="background_light">#FFFFFF</color>
+    <color name="background_dark">#121212</color>
+    <color name="surface">#F5F5F5</color>
+    <color name="surface_dark">#1E1E1E</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#9E9E9E</color>
+    <color name="text_white">#FFFFFF</color>
+    
+    <!-- Status Colors -->
+    <color name="status_online">#4CAF50</color>
+    <color name="status_offline">#9E9E9E</color>
+    <color name="status_warning">#FFC107</color>
+    <color name="status_error">#D32F2F</color>
+    
+    <!-- Gauge Colors -->
+    <color name="gauge_optimal">#4CAF50</color>
+    <color name="gauge_warning">#FFC107</color>
+    <color name="gauge_critical">#D32F2F</color>
+    <color name="gauge_background">#E0E0E0</color>
+    
+    <!-- Chart Colors -->
+    <color name="chart_temperature">#FF5722</color>
+    <color name="chart_humidity">#2196F3</color>
+    <color name="chart_grid">#E0E0E0</color>
+    
+    <!-- Standard Colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+    
+    <!-- Card Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_background_dark">#2C2C2C</color>
+    
+    <!-- Button Colors -->
+    <color name="button_enabled">#009688</color>
+    <color name="button_disabled">#BDBDBD</color>
+</resources>

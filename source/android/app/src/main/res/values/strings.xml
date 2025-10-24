@@ -1,0 +1,84 @@
+<resources>
+    <string name="app_name">Rice Dryer</string>
+    
+    <!-- Authentication -->
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="dont_have_account">Don\'t have an account? Register</string>
+    <string name="already_have_account">Already have an account? Login</string>
+    <string name="logout">Logout</string>
+    <string name="reset_password">Reset Password</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard">Dashboard</string>
+    <string name="temperature">Temperature</string>
+    <string name="humidity">Humidity</string>
+    <string name="setpoint">Setpoint</string>
+    <string name="status">Status</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+    <string name="start_drying">Start Drying</string>
+    <string name="stop_drying">Stop Drying</string>
+    <string name="heater_on">Heater ON</string>
+    <string name="heater_off">Heater OFF</string>
+    <string name="last_update">Last Update</string>
+    <string name="select_device">Select Device</string>
+    
+    <!-- Charts -->
+    <string name="charts">Charts</string>
+    <string name="analytics">Analytics</string>
+    <string name="temperature_chart">Temperature</string>
+    <string name="humidity_chart">Humidity</string>
+    <string name="combined_chart">Combined</string>
+    <string name="export_csv">Export to CSV</string>
+    <string name="time_range">Time Range</string>
+    <string name="last_24h">Last 24 Hours</string>
+    <string name="last_7d">Last 7 Days</string>
+    <string name="last_30d">Last 30 Days</string>
+    <string name="min">Min</string>
+    <string name="max">Max</string>
+    <string name="avg">Average</string>
+    
+    <!-- Devices -->
+    <string name="devices">Devices</string>
+    <string name="add_device">Add Device</string>
+    <string name="pair_device">Pair Device</string>
+    <string name="pairing_code">Pairing Code</string>
+    <string name="device_name">Device Name</string>
+    <string name="enter_pairing_code">Enter 6-digit pairing code</string>
+    <string name="device_paired">Device paired successfully!</string>
+    <string name="no_devices">No devices paired yet</string>
+    <string name="delete_device">Delete Device</string>
+    <string name="rename_device">Rename Device</string>
+    
+    <!-- Profile -->
+    <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
+    <string name="account_settings">Account Settings</string>
+    <string name="app_settings">App Settings</string>
+    <string name="notifications">Notifications</string>
+    <string name="temperature_unit">Temperature Unit</string>
+    <string name="about">About</string>
+    <string name="version">Version</string>
+    <string name="developer">Developer: QPPD</string>
+    
+    <!-- Messages -->
+    <string name="loading">Loading...</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="try_again">Try Again</string>
+    <string name="success">Success</string>
+    
+    <!-- Validation -->
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_invalid_password">Password must be at least 6 characters</string>
+    <string name="error_passwords_dont_match">Passwords don\'t match</string>
+    <string name="error_invalid_name">Name must be at least 2 characters</string>
+    <string name="error_invalid_pairing_code">Pairing code must be 6 digits</string>
+</resources>

@@ -1,0 +1,33 @@
+#include "FirebaseConfig.h"
+
+// Firebase Configuration Template
+// INSTRUCTIONS:
+// 1. Copy this file to FirebaseConfig.cpp
+// 2. Get your credentials from Android google-services.json
+// 3. Replace ALL placeholder values below
+// 4. DO NOT commit FirebaseConfig.cpp to version control
+
+const char* FirebaseConfig::getFirebaseHost() {
+    // Example: "your-project-default-rtdb.firebaseio.com"
+    return "YOUR_FIREBASE_HOST_HERE";
+}
+
+const char* FirebaseConfig::getFirebaseAuth() {
+    // Get this from google-services.json -> api_key -> current_key
+    return "YOUR_API_KEY_HERE";
+}
+
+const char* FirebaseConfig::getDatabaseURL() {
+    // Example: "https://your-project-default-rtdb.firebaseio.com"
+    return "YOUR_DATABASE_URL_HERE";
+}
+
+const char* FirebaseConfig::getApiKey() {
+    // Same as getFirebaseAuth()
+    return "YOUR_API_KEY_HERE";
+}
+
+const char* FirebaseConfig::getProjectId() {
+    // Get this from google-services.json -> project_info -> project_id
+    return "YOUR_PROJECT_ID_HERE";
+}
