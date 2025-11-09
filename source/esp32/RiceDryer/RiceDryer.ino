@@ -150,9 +150,9 @@ bool initFirebase() {
   lcd.print(0, 0, "Connecting to");
   lcd.print(0, 1, "Firebase...");
   
-  config.host = FirebaseConfig::getFirebaseHost();
-  config.signer.tokens.legacy_token = FirebaseConfig::getFirebaseAuth();
-  config.database_url = FirebaseConfig::getDatabaseURL();
+  config.host = RiceDryerConfig::getFirebaseHost();
+  config.signer.tokens.legacy_token = RiceDryerConfig::getFirebaseAuth();
+  config.database_url = RiceDryerConfig::getDatabaseURL();
   config.timeout.serverResponse = 10 * 1000;
   
   Firebase.begin(&config, &auth);
@@ -410,7 +410,7 @@ void resetWiFiCredentials() {
   lcd.print(0, 0, "Resetting WiFi...");
   lcd.print(0, 1, "Please wait...");
   
-  wifiManager.resetSettings();
+  wifiManager.reset();
   delay(2000);
   
   lcd.clear();

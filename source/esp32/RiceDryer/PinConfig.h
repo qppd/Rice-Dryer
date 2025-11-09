@@ -5,16 +5,16 @@
 #define PINCONFIG_H
 
 // Button pins (input with internal pull-up)
-#define BUTTON_1 17
-#define BUTTON_2 16
-#define BUTTON_3 4
+const uint8_t BUTTON_1 = 17;
+const uint8_t BUTTON_2 = 16;
+const uint8_t BUTTON_3 = 4;
 
 // Relay pins (output)
-const uint16_t RELAY_1 = 19;
-const uint16_t RELAY_2 = 18;
+const uint8_t RELAY_1 = 19;
+const uint8_t RELAY_2 = 18;
 
 // Potentiometer pin (analog input) - Changed from GPIO 5 to GPIO 34 for ADC
-const uint16_t POT_1 = 34;  // GPIO 34 is ADC1_CH6, better for analog reading than GPIO 5
+const uint8_t POT_1 = 34;  // GPIO 34 is ADC1_CH6, better for analog reading than GPIO 5
 
 // DHT22 sensor pin
 const uint8_t DHT_PIN = 39;

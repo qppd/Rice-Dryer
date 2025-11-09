@@ -1,5 +1,7 @@
 #ifndef LCDDISPLAY_H
 #define LCDDISPLAY_H
+
+#include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 class LCDDisplay {
 public:

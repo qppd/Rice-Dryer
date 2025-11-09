@@ -1,5 +1,8 @@
 #ifndef SSR_H
 #define SSR_H
+
+#include <Arduino.h>
+
 class SSR {
 public:
     SSR(uint8_t pin);
