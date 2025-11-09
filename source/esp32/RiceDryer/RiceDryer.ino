@@ -46,11 +46,18 @@ bool devicePaired = false;
 unsigned long pairingCodeExpiry = 0;
 
 // Components
-Button button(BUTTON_PIN);
+Button button1(BUTTON_1);
+Button button2(BUTTON_2);
+Button button3(BUTTON_3);
 DHT22Sensor dht(DHT_PIN);
-Potentiometer pot(POT_PIN);
-SSR ssr(SSR_PIN);
+Potentiometer pot(POT_1);
+SSR relay1(RELAY_1);
+SSR relay2(RELAY_2);
 LCDDisplay lcd(LCD_ADDR, LCD_COLS, LCD_ROWS);
+
+// Legacy compatibility
+Button& button = button1;  // Reference to first button for existing code
+SSR& ssr = relay1;         // Reference to first relay for existing code
 
 // Logic variables
 bool dryingActive = false;
@@ -67,9 +74,30 @@ const unsigned long PAIRING_CODE_VALIDITY = 600000; // 10 minutes
 float temperature = 0.0;
 float humidity = 0.0;
 int potValue = 0;
-float setpoint = 40.0; // Default target temp
+float setpointTemp = 40.0;     // Default target temperature
+float setpointHumidity = 20.0; // Default target humidity (stop when reached)
 bool wifiConnected = false;
 bool firebaseConnected = false;
+
+// UI and control states
+enum SettingMode {
+  NORMAL_MODE,
+  SET_TEMP_MODE,
+  SET_HUMIDITY_MODE
+};
+
+SettingMode currentMode = NORMAL_MODE;
+unsigned long modeStartTime = 0;
+const unsigned long MODE_TIMEOUT = 5000; // 5 seconds timeout for setting modes
+
+// Button states for debouncing
+bool button1LastState = false;
+bool button2LastState = false;
+bool button3LastState = false;
+unsigned long button1LastPress = 0;
+unsigned long button2LastPress = 0;
+unsigned long button3LastPress = 0;
+const unsigned long BUTTON_DEBOUNCE = 200; // 200ms debounce
 
 // Generate unique device ID from MAC address
 String getDeviceId() {
@@ -208,9 +236,12 @@ void sendDataToFirebase() {
   FirebaseJson json;
   json.set("temperature", temperature);
   json.set("humidity", humidity);
-  json.set("setpoint", setpoint);
-  json.set("ssrStatus", ssr.isOn());
+  json.set("setpointTemp", setpointTemp);
+  json.set("setpointHumidity", setpointHumidity);
+  json.set("relay1Status", relay1.isOn());
+  json.set("relay2Status", relay2.isOn());
   json.set("dryingActive", dryingActive);
+  json.set("currentMode", (int)currentMode);
   json.set("online", true);
   json.set("lastUpdate", millis());
   
@@ -229,8 +260,11 @@ void logHistoricalData() {
   FirebaseJson json;
   json.set("temperature", temperature);
   json.set("humidity", humidity);
-  json.set("setpoint", setpoint);
-  json.set("ssrStatus", ssr.isOn());
+  json.set("setpointTemp", setpointTemp);
+  json.set("setpointHumidity", setpointHumidity);
+  json.set("relay1Status", relay1.isOn());
+  json.set("relay2Status", relay2.isOn());
+  json.set("dryingActive", dryingActive);
   
   if (!Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
     Serial.println("Failed to log history: " + fbdo.errorReason());
@@ -258,8 +292,13 @@ void checkRemoteCommands() {
         acknowledgeCommand("STOP");
       } else if (action == "SET_TEMP") {
         if (json.get(jsonData, "value")) {
-          setpoint = jsonData.floatValue;
+          setpointTemp = jsonData.floatValue;
           acknowledgeCommand("SET_TEMP");
+        }
+      } else if (action == "SET_HUMIDITY") {
+        if (json.get(jsonData, "value")) {
+          setpointHumidity = jsonData.floatValue;
+          acknowledgeCommand("SET_HUMIDITY");
         }
       }
       
@@ -303,12 +342,20 @@ void testPotentiometer() {
 
 void testSSR() {
   lcd.clear();
-  lcd.print(0, 0, "Testing SSR...");
+  lcd.print(0, 0, "Testing Relay1...");
   lcd.print(0, 1, "ON for 2s");
-  ssr.on();
+  relay1.on();
   delay(2000);
   lcd.print(0, 1, "OFF for 2s");
-  ssr.off();
+  relay1.off();
+  delay(1000);
+  
+  lcd.print(0, 0, "Testing Relay2...");
+  lcd.print(0, 1, "ON for 2s");
+  relay2.on();
+  delay(2000);
+  lcd.print(0, 1, "OFF for 2s");
+  relay2.off();
   delay(2000);
 }
 
@@ -318,6 +365,115 @@ void testLCD() {
   lcd.print(0, 1, "Hello World!");
   delay(2000);
   lcd.clear();
+}
+
+// Handle button press with debouncing
+bool isButtonPressed(Button& button, bool& lastState, unsigned long& lastPress) {
+  bool currentState = button.isPressed();
+  bool pressed = false;
+  
+  if (currentState && !lastState && (millis() - lastPress > BUTTON_DEBOUNCE)) {
+    pressed = true;
+    lastPress = millis();
+  }
+  
+  lastState = currentState;
+  return pressed;
+}
+
+// Handle potentiometer input based on current mode
+void handlePotentiometer() {
+  potValue = pot.readValue();
+  
+  switch (currentMode) {
+    case SET_TEMP_MODE:
+      setpointTemp = map(potValue, 0, 4095, 30, 80); // Temperature range: 30-80°C
+      break;
+    case SET_HUMIDITY_MODE:
+      setpointHumidity = map(potValue, 0, 4095, 10, 50); // Humidity range: 10-50%
+      break;
+    default:
+      // In normal mode, pot doesn't change setpoints
+      break;
+  }
+}
+
+// Reset WiFi credentials and restart
+void resetWiFiCredentials() {
+  lcd.clear();
+  lcd.print(0, 0, "Resetting WiFi...");
+  lcd.print(0, 1, "Please wait...");
+  
+  wifiManager.resetSettings();
+  delay(2000);
+  
+  lcd.clear();
+  lcd.print(0, 0, "WiFi Reset!");
+  lcd.print(0, 1, "Restarting...");
+  delay(2000);
+  
+  ESP.restart();
+}
+
+// Check if humidity target is reached (dryer should stop)
+bool isHumidityTargetReached() {
+  return humidity <= setpointHumidity;
+}
+
+// Control drying logic
+void controlDrying() {
+  if (!dryingActive) {
+    relay1.off();
+    relay2.off();
+    return;
+  }
+  
+  // Check if humidity target is reached
+  if (isHumidityTargetReached()) {
+    dryingActive = false;
+    relay1.off();
+    relay2.off();
+    
+    // Display completion message
+    lcd.clear();
+    lcd.print(0, 0, "Drying Complete!");
+    lcd.print(0, 1, "Target Reached");
+    delay(2000);
+    return;
+  }
+  
+  // Control heating based on temperature setpoint
+  if (temperature < setpointTemp) {
+    relay1.on();  // Main heater
+    relay2.on();  // Fan/secondary heater
+  } else {
+    relay1.off(); // Turn off heater when temp reached
+    relay2.on();  // Keep fan running for air circulation
+  }
+}
+
+// Update LCD display based on current mode
+void updateDisplay() {
+  lcd.clear();
+  
+  switch (currentMode) {
+    case SET_TEMP_MODE:
+      lcd.print(0, 0, "Set Temperature:");
+      lcd.print(0, 1, String(setpointTemp, 1) + "C (Use Pot)");
+      break;
+      
+    case SET_HUMIDITY_MODE:
+      lcd.print(0, 0, "Set Humidity:");
+      lcd.print(0, 1, String(setpointHumidity, 1) + "% (Use Pot)");
+      break;
+      
+    default: // NORMAL_MODE
+      lcd.print(0, 0, dryingActive ? "Drying: ON " : "Drying: OFF");
+      char buf[17];
+      snprintf(buf, sizeof(buf), "T:%2.1f H:%2.1f", temperature, humidity);
+      lcd.print(0, 1, String(buf));
+      break;
+  }
 }
 
 void runTestMenu() {
@@ -334,12 +490,12 @@ void runTestMenu() {
     lcd.print(0, 0, String("Test: ") + testNames[testIndex]);
     lcd.print(0, 1, "Btn: Run Test");
     // Wait for button press to run test
-    while (!button.isPressed()) {
+    while (!button1.isPressed()) {
       delay(50);
     }
     tests[testIndex]();
     // Wait for button release
-    while (button.isPressed()) {
+    while (button1.isPressed()) {
       delay(50);
     }
     // Next test
@@ -355,10 +511,13 @@ void setup() {
   randomSeed(analogRead(0));
   
   // Initialize components
-  button.begin();
+  button1.begin();
+  button2.begin();
+  button3.begin();
   dht.begin();
   pot.begin();
-  ssr.begin();
+  relay1.begin();
+  relay2.begin();
   lcd.begin();
   
   lcd.clear();
@@ -366,8 +525,14 @@ void setup() {
   lcd.print(0, 1, "Initializing...");
   delay(2000);
   
-  // If button held at startup, enter test mode
-  if (button.isPressed()) {
+  // Display initial setpoints
+  lcd.clear();
+  lcd.print(0, 0, "Temp: " + String(setpointTemp, 1) + "C");
+  lcd.print(0, 1, "Humid: " + String(setpointHumidity, 1) + "%");
+  delay(2000);
+  
+  // If button1 held at startup, enter test mode
+  if (button1.isPressed()) {
     runTestMenu();
   }
   
@@ -440,63 +605,119 @@ void loop() {
     return;
   }
   
-  // Read button to toggle drying
-  static bool lastButtonState = false;
-  bool buttonState = button.isPressed();
-  if (buttonState && !lastButtonState) {
-    dryingActive = !dryingActive;
-    lcd.clear();
-    lcd.print(0, 0, dryingActive ? "Drying: ON" : "Drying: OFF");
-    lcd.print(0, 1, "Temp/Humid/Setpt");
-    delay(300); // Debounce
+  // === BUTTON HANDLING ===
+  
+  // Button 1: Toggle setting mode (temp/humidity)
+  if (isButtonPressed(button1, button1LastState, button1LastPress)) {
+    if (currentMode == NORMAL_MODE) {
+      currentMode = SET_TEMP_MODE;
+      modeStartTime = millis();
+      lcd.clear();
+      lcd.print(0, 0, "Setting Temp Mode");
+      delay(500);
+    } else if (currentMode == SET_TEMP_MODE) {
+      currentMode = SET_HUMIDITY_MODE;
+      modeStartTime = millis();
+      lcd.clear();
+      lcd.print(0, 0, "Setting Humid Mode");
+      delay(500);
+    } else {
+      currentMode = NORMAL_MODE;
+      lcd.clear();
+      lcd.print(0, 0, "Normal Mode");
+      delay(500);
+    }
   }
-  lastButtonState = buttonState;
-
-  // Read potentiometer for setpoint
-  potValue = pot.readValue();
-  setpoint = map(potValue, 0, 4095, 30, 60); // Setpoint range: 30-60°C
-
-  // Read sensors periodically
+  
+  // Button 2: Start/Stop drying
+  if (isButtonPressed(button2, button2LastState, button2LastPress)) {
+    dryingActive = !dryingActive;
+    
+    if (dryingActive) {
+      lcd.clear();
+      lcd.print(0, 0, "Starting Dryer...");
+      lcd.print(0, 1, "Target H: " + String(setpointHumidity, 1) + "%");
+      delay(1000);
+    } else {
+      lcd.clear();
+      lcd.print(0, 0, "Stopping Dryer...");
+      lcd.print(0, 1, "Force Stop");
+      delay(1000);
+    }
+    
+    // Return to normal mode when starting/stopping
+    currentMode = NORMAL_MODE;
+  }
+  
+  // Button 3: Reset WiFi credentials
+  if (isButtonPressed(button3, button3LastState, button3LastPress)) {
+    // Hold button for 3 seconds to confirm reset
+    unsigned long holdStart = millis();
+    lcd.clear();
+    lcd.print(0, 0, "Hold 3s to Reset");
+    lcd.print(0, 1, "WiFi Credentials");
+    
+    while (button3.isPressed() && (millis() - holdStart < 3000)) {
+      delay(100);
+    }
+    
+    if (millis() - holdStart >= 3000) {
+      resetWiFiCredentials();
+    } else {
+      lcd.clear();
+      lcd.print(0, 0, "Reset Cancelled");
+      delay(1000);
+    }
+  }
+  
+  // === SETTING MODE TIMEOUT ===
+  if (currentMode != NORMAL_MODE && (millis() - modeStartTime > MODE_TIMEOUT)) {
+    currentMode = NORMAL_MODE;
+    lcd.clear();
+    lcd.print(0, 0, "Timeout - Normal");
+    delay(500);
+  }
+  
+  // === POTENTIOMETER HANDLING ===
+  handlePotentiometer();
+  
+  // === SENSOR READING ===
   if (millis() - lastSensorRead > SENSOR_INTERVAL) {
     temperature = dht.readTemperature();
     humidity = dht.readHumidity();
     lastSensorRead = millis();
-  }
-
-  // Control SSR based on drying logic
-  if (dryingActive) {
-    if (temperature < setpoint) {
-      ssr.on();
-    } else {
-      ssr.off();
+    
+    // Validate sensor readings
+    if (isnan(temperature) || isnan(humidity)) {
+      lcd.clear();
+      lcd.print(0, 0, "Sensor Error!");
+      lcd.print(0, 1, "Check DHT22");
+      delay(1000);
+      return;
     }
-  } else {
-    ssr.off();
   }
   
-  // Send data to Firebase periodically
+  // === DRYING CONTROL ===
+  controlDrying();
+  
+  // === FIREBASE COMMUNICATION ===
   if (millis() - lastFirebaseUpdate > FIREBASE_UPDATE_INTERVAL) {
     sendDataToFirebase();
     lastFirebaseUpdate = millis();
   }
   
-  // Log historical data
   if (millis() - lastHistoryLog > HISTORY_LOG_INTERVAL) {
     logHistoricalData();
     lastHistoryLog = millis();
   }
   
-  // Check for remote commands
   if (millis() - lastCommandCheck > COMMAND_CHECK_INTERVAL) {
     checkRemoteCommands();
     lastCommandCheck = millis();
   }
-
-  // Update LCD display
-  lcd.print(0, 0, dryingActive ? "Drying: ON " : "Drying: OFF");
-  char buf[17];
-  snprintf(buf, sizeof(buf), "T:%2.1f H:%2.1f S:%2.0f", temperature, humidity, setpoint);
-  lcd.print(0, 1, String(buf));
-
+  
+  // === DISPLAY UPDATE ===
+  updateDisplay();
+  
   delay(200);
 }

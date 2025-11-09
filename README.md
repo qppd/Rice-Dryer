@@ -4,11 +4,12 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 
 ## Project Status
 
-- ESP32 Firmware: 100% Complete
+- ESP32 Firmware: 100% Complete ✅ (Enhanced with 3-button interface & dual relay control)
 - Android Application: 40% Complete
-- Overall Progress: 60% Complete
-- Estimated Time to MVP: 2-3 weeks
-- Last Updated: October 24, 2025
+- Overall Progress: 65% Complete
+- Hardware Configuration: Updated for 38-pin ESP32 dev module
+- New Features: Multi-mode operation, humidity-based auto-stop, dual setpoints
+- Last Updated: November 9, 2025
 
 ## Table of Contents
 
@@ -37,16 +38,34 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 
 ### ESP32 Core Features (100% Complete)
 
-- WiFiManager Integration: Easy WiFi configuration through captive portal (SSID: "RiceDryer_Setup")
-- Firebase Realtime Database Integration: Automatic device registration and connection management
-- Real-time Data Streaming: Updates every 5 seconds (temperature, humidity, setpoint, SSR status)
-- Historical Data Logging: Sensor readings logged every 30 seconds
-- Remote Control Capability: Responds to START, STOP, SET_TEMP commands
-- Device Pairing Mechanism: 6-digit pairing code generation and validation
-- OTA Updates Support: Over-the-air firmware updates
-- LCD Display Modes: Normal operation, pairing mode, WiFi setup, update progress
-- Automatic Reconnection: Exponential backoff for WiFi and Firebase
-- Status Monitoring: Online/offline status tracking
+#### Hardware Control
+- **3-Button Interface**: Setting mode toggle, start/stop control, WiFi reset functionality
+- **Potentiometer Control**: Dynamic temperature/humidity setpoint adjustment (30-80°C, 10-50%)
+- **Dual Relay System**: Independent heater and fan control for optimal drying
+- **Smart Drying Logic**: Auto-stop when humidity target reached, temperature-based heating control
+- **Safety Features**: Sensor error detection, force-stop capability, confirmation dialogs
+
+#### Connectivity & Communication
+- **WiFiManager Integration**: Easy WiFi configuration through captive portal (SSID: "RiceDryer_Setup")
+- **Firebase Realtime Database**: Automatic device registration and connection management
+- **Real-time Data Streaming**: Updates every 5 seconds (temperature, humidity, both setpoints, relay status)
+- **Historical Data Logging**: Comprehensive sensor readings logged every 30 seconds
+- **Remote Control**: Responds to START, STOP, SET_TEMP, SET_HUMIDITY commands
+- **Device Pairing**: Secure 6-digit pairing code generation and validation
+
+#### User Interface & Experience
+- **Multi-Mode LCD Display**: Normal operation, setting modes, pairing mode, WiFi setup
+- **Interactive Setting Modes**: Temperature setting mode, humidity setting mode with visual feedback
+- **Mode Timeout Protection**: Auto-return to normal mode after 5 seconds of inactivity
+- **Button Debouncing**: Reliable 200ms debounce for all button interactions
+- **Status Indicators**: Real-time drying status, connectivity status, error notifications
+
+#### Advanced Features
+- **OTA Updates Support**: Over-the-air firmware updates with progress display
+- **Automatic Reconnection**: Exponential backoff for WiFi and Firebase connections
+- **Test Mode**: Component testing suite accessible at startup
+- **WiFi Credential Reset**: Hold-to-confirm WiFi reset (3-second hold protection)
+- **Sensor Validation**: DHT22 error detection with user notification
 
 ### Android App Features (Planned)
 
@@ -65,13 +84,14 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 ### Prerequisites
 
 Hardware:
-- ESP32 Development Board
+- ESP32 Development Board (38-pin dev module)
 - DHT22 Temperature & Humidity Sensor
 - 16x2 I2C LCD Display
-- Solid State Relay (SSR)
-- Potentiometer
-- Push Button
+- 2x Solid State Relays (SSR) - Main heater + Fan control
+- 10K Potentiometer (for setting adjustments)
+- 3x Push Buttons (setting mode, start/stop, WiFi reset)
 - Power supply and connecting wires
+- Pull-up resistors (or use ESP32 internal pull-ups)
 
 Software:
 - Arduino IDE (1.8.19 or higher) OR PlatformIO
@@ -214,12 +234,12 @@ Additional Components:
 - Power Supply: 5V/2A for ESP32 and peripherals
 - Solar Panel (Optional): 12V/10W for off-grid operation
 
-### Pin Connections (PinConfig.h)
+### Pin Connections (PinConfig.h) - Updated Configuration
 
 DHT22 Sensor:
 - VCC  -> 3.3V
 - GND  -> GND
-- DATA -> GPIO 14
+- DATA -> GPIO 39 (Input-only, perfect for sensor)
 
 LCD (I2C):
 - VCC -> 5V
@@ -227,19 +247,21 @@ LCD (I2C):
 - SDA -> GPIO 21
 - SCL -> GPIO 22
 
-Solid State Relay:
-- Control -> GPIO 27
-- VCC -> 3.3V
+Relay Controls:
+- Relay 1 (Main Heater) -> GPIO 19
+- Relay 2 (Fan/Secondary) -> GPIO 18
+- VCC -> 3.3V/5V (depending on relay module)
 - GND -> GND
 
-Potentiometer:
+Potentiometer (Settings Control):
 - VCC -> 3.3V
 - GND -> GND
-- OUT -> GPIO 34 (ADC)
+- OUT -> GPIO 34 (ADC1_CH6 - optimal for analog reading)
 
-Button:
-- One side -> GPIO 12
-- Other side -> GND
+Control Buttons:
+- Button 1 (Setting Mode) -> GPIO 17 + GND (internal pull-up)
+- Button 2 (Start/Stop) -> GPIO 16 + GND (internal pull-up)
+- Button 3 (WiFi Reset) -> GPIO 4 + GND (internal pull-up)
 
 ## Software Components
 
@@ -693,29 +715,87 @@ Connection Issues:
 
 ### ESP32 Operation
 
-Normal Operation:
-- LCD displays temperature, humidity, setpoint, and status
-- Potentiometer adjusts setpoint (30-80°C)
-- Button cycles through display modes
-- SSR automatically controls heater based on setpoint
+#### Button Controls
 
-Display Modes:
-1. Normal Mode:
-   - Line 1: "Temp: XX.X°C"
-   - Line 2: "Humid: XX.X%"
-   
-2. Status Mode:
-   - Line 1: "Set: XX°C SSR: ON/OFF"
-   - Line 2: "WiFi: ●●●● FB: OK"
-   
-3. Pairing Mode:
-   - Line 1: "Pairing Code:"
-   - Line 2: "XXXXXX"
+**Button 1 (GPIO 17) - Setting Mode Toggle:**
+- **Single Press**: Cycles through setting modes:
+  - Normal Mode → Set Temperature Mode → Set Humidity Mode → Normal Mode
+- **Auto-timeout**: Returns to normal mode after 5 seconds of inactivity
 
-Manual Control:
-- Short press button: Cycle display modes
-- Long press (3s): Enter manual SSR control
-- Hold button during boot: Enter test mode
+**Button 2 (GPIO 16) - Start/Stop Control:**
+- **Press**: Toggle drying process on/off
+- **Start**: Begins automatic drying until humidity setpoint is reached
+- **Stop**: Force-stops drying immediately (safety override)
+
+**Button 3 (GPIO 4) - WiFi Reset:**
+- **Hold 3 seconds**: Resets WiFi credentials and restarts device
+- **Short press**: Cancels reset operation (safety feature)
+
+#### Potentiometer Control (GPIO 34)
+
+**In Normal Mode:**
+- Potentiometer has no effect (prevents accidental changes)
+
+**In Set Temperature Mode:**
+- Range: 30-80°C
+- Real-time adjustment with LCD feedback
+
+**In Set Humidity Mode:**
+- Range: 10-50% (target humidity to stop drying)
+- Real-time adjustment with LCD feedback
+
+#### Display Modes
+
+**1. Normal Mode:**
+```
+Drying: ON/OFF
+T:25.5 H:45.2
+```
+
+**2. Set Temperature Mode:**
+```
+Set Temperature:
+65.0C (Use Pot)
+```
+
+**3. Set Humidity Mode:**
+```
+Set Humidity:
+20.0% (Use Pot)
+```
+
+**4. Pairing Mode:**
+```
+Pairing Code:
+XXXXXX
+```
+
+#### Drying Logic
+
+**Automatic Operation:**
+1. User sets temperature setpoint (Button 1 → Potentiometer)
+2. User sets humidity target (Button 1 → Button 1 → Potentiometer)
+3. User starts drying (Button 2)
+4. System heats to temperature setpoint using Relay 1
+5. Fan runs continuously via Relay 2 for air circulation
+6. Drying stops automatically when humidity ≤ target
+7. User can force-stop anytime with Button 2
+
+**Safety Features:**
+- Sensor error detection stops operation
+- WiFi reset requires 3-second hold
+- Mode timeout prevents accidental setting changes
+- Force-stop capability overrides automatic operation
+
+#### Startup & Test Mode
+
+**Normal Startup:**
+- Display: "Rice Dryer v1.0" → Current setpoints → Normal operation
+
+**Test Mode (Hold Button 1 during startup):**
+- Component testing suite
+- Tests: DHT22, Potentiometer, Relays, LCD
+- Use Button 1 to cycle through tests
 
 ### Android App Usage
 
