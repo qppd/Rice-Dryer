@@ -27,6 +27,7 @@
 #include "Potentiometer.h"
 #include "SSR.h"
 #include "LCDDisplay.h"
+#include "TemperatureController.h"
 
 // Pin configuration
 #include "PinConfig.h"
@@ -54,6 +55,7 @@ Potentiometer pot(POT_1);
 SSR relay1(RELAY_1);
 SSR relay2(RELAY_2);
 LCDDisplay lcd(LCD_ADDR, LCD_COLS, LCD_ROWS);
+TemperatureController tempController;
 
 // Legacy compatibility
 Button& button = button1;  // Reference to first button for existing code
@@ -242,6 +244,7 @@ void sendDataToFirebase() {
   json.set("relay2Status", relay2.isOn());
   json.set("dryingActive", dryingActive);
   json.set("currentMode", (int)currentMode);
+  json.set("pidOutput", tempController.getOutput());
   json.set("online", true);
   json.set("lastUpdate", millis());
   
@@ -265,6 +268,7 @@ void logHistoricalData() {
   json.set("relay1Status", relay1.isOn());
   json.set("relay2Status", relay2.isOn());
   json.set("dryingActive", dryingActive);
+  json.set("pidOutput", tempController.getOutput());
   
   if (!Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
     Serial.println("Failed to log history: " + fbdo.errorReason());
@@ -293,6 +297,7 @@ void checkRemoteCommands() {
       } else if (action == "SET_TEMP") {
         if (json.get(jsonData, "value")) {
           setpointTemp = jsonData.floatValue;
+          tempController.setSetpoint(setpointTemp);  // Update PID setpoint
           acknowledgeCommand("SET_TEMP");
         }
       } else if (action == "SET_HUMIDITY") {
@@ -388,6 +393,7 @@ void handlePotentiometer() {
   switch (currentMode) {
     case SET_TEMP_MODE:
       setpointTemp = map(potValue, 0, 4095, 30, 80); // Temperature range: 30-80°C
+      tempController.setSetpoint(setpointTemp);       // Update PID setpoint
       break;
     case SET_HUMIDITY_MODE:
       setpointHumidity = map(potValue, 0, 4095, 10, 50); // Humidity range: 10-50%
@@ -423,16 +429,22 @@ bool isHumidityTargetReached() {
 // Control drying logic
 void controlDrying() {
   if (!dryingActive) {
+    // Turn off all heating and disable PID when not drying
     relay1.off();
     relay2.off();
+    tempController.setMode(false);  // Set PID to manual mode
     return;
   }
+  
+  // Enable PID when drying is active
+  tempController.setMode(true);  // Set PID to automatic mode
   
   // Check if humidity target is reached
   if (isHumidityTargetReached()) {
     dryingActive = false;
     relay1.off();
     relay2.off();
+    tempController.setMode(false);  // Disable PID
     
     // Display completion message
     lcd.clear();
@@ -442,13 +454,29 @@ void controlDrying() {
     return;
   }
   
-  // Control heating based on temperature setpoint
-  if (temperature < setpointTemp) {
-    relay1.on();  // Main heater
-    relay2.on();  // Fan/secondary heater
-  } else {
-    relay1.off(); // Turn off heater when temp reached
-    relay2.on();  // Keep fan running for air circulation
+  // Update PID controller with current temperature and compute output
+  bool pidComputed = tempController.compute(temperature);
+  
+  if (pidComputed) {
+    // Get PID recommendation for heater control
+    bool shouldHeat = tempController.shouldHeatOn();
+    double pidOutput = tempController.getOutput();
+    
+    // Control relay1 (main heater) based on PID output
+    if (shouldHeat) {
+      relay1.on();
+      Serial.print("PID Heating ON - Output: ");
+      Serial.print(pidOutput);
+      Serial.println("%");
+    } else {
+      relay1.off();
+      Serial.print("PID Heating OFF - Output: ");
+      Serial.print(pidOutput);
+      Serial.println("%");
+    }
+    
+    // Always run fan (relay2) during drying for air circulation
+    relay2.on();
   }
 }
 
@@ -519,11 +547,15 @@ void setup() {
   relay1.begin();
   relay2.begin();
   lcd.begin();
+  tempController.begin();
   
   lcd.clear();
   lcd.print(0, 0, "Rice Dryer v1.0");
   lcd.print(0, 1, "Initializing...");
   delay(2000);
+  
+  // Initialize PID with current setpoint
+  tempController.setSetpoint(setpointTemp);
   
   // Display initial setpoints
   lcd.clear();
