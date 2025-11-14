@@ -9,35 +9,74 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = GoldenAmberLight,
+    onPrimary = DarkBrown,
+    primaryContainer = RiceBrownDark,
+    onPrimaryContainer = GoldenAmberLight,
+    
+    secondary = WarmOrange,
+    onSecondary = Color.White,
+    secondaryContainer = WarmOrangeDark,
+    onSecondaryContainer = WarmOrangeLight,
+    
+    tertiary = RiceBrownLight,
+    onTertiary = Color.White,
+    
+    background = DarkBrown,
+    onBackground = CreamWhite,
+    surface = SurfaceDark,
+    onSurface = CreamWhite,
+    
+    surfaceVariant = RiceBrownDark,
+    onSurfaceVariant = LightBeige,
+    
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = RiceBrown,
     onPrimary = Color.White,
+    primaryContainer = GoldenAmberLight,
+    onPrimaryContainer = RiceBrownDark,
+    
+    secondary = WarmOrange,
     onSecondary = Color.White,
+    secondaryContainer = WarmOrangeLight,
+    onSecondaryContainer = WarmOrangeDark,
+    
+    tertiary = GoldenAmber,
     onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    tertiaryContainer = GoldenAmberLight,
+    onTertiaryContainer = GoldenAmberDark,
+    
+    background = CreamWhite,
+    onBackground = DarkBrown,
+    surface = SurfaceLight,
+    onSurface = DarkBrown,
+    
+    surfaceVariant = LightBeige,
+    onSurfaceVariant = RiceBrownDark,
+    
+    outline = RiceBrown,
+    
+    error = Color(0xFFBA1A1A),
+    onError = Color.White,
 )
 
 @Composable
 fun RiceDryerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Dynamic color is available on Android 12+ (disabled to use brand colors)
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -48,6 +87,15 @@ fun RiceDryerTheme(
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }
+    
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primary.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
     }
 
     MaterialTheme(

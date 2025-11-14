@@ -1,5 +1,6 @@
 package com.qppd.ricedryer.ui.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -11,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -18,6 +21,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qppd.ricedryer.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,30 +53,31 @@ fun RegisterScreen(
                      password.length >= 6 && 
                      passwordsMatch
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Create Account") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Logo
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Rice Dryer Logo",
+                modifier = Modifier.size(120.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
             Text(
                 text = "Join Rice Dryer",
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
             )
             
             Spacer(modifier = Modifier.height(32.dp))

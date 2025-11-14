@@ -300,4 +300,23 @@ class DeviceRepository(private val database: AppDatabase) {
     fun getCachedReadings(deviceId: String, limit: Int = 100): Flow<List<CachedReading>> {
         return database.readingDao().getReadings(deviceId, limit)
     }
+    
+    // Rename device
+    suspend fun renameDevice(deviceId: String, newName: String) {
+        devicesRef.child(deviceId).child("deviceInfo/deviceName").setValue(newName).await()
+    }
+
+    // Remove device from user's device list
+    suspend fun removeDeviceFromUser(userId: String, deviceId: String) {
+        // Remove from user's device array
+        val userDevicesRef = usersRef.child(userId).child("devices")
+        val snapshot = userDevicesRef.get().await()
+        val devices = snapshot.children.mapNotNull { it.getValue(String::class.java) }
+        val updatedDevices = devices.filter { it != deviceId }
+        userDevicesRef.setValue(updatedDevices).await()
+        
+        // Clear local cache
+        database.deviceDao().deleteDevice(deviceId)
+        database.readingDao().deleteReadingsForDevice(deviceId)
+    }
 }

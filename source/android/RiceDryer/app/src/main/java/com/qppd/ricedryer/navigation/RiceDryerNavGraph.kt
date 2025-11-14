@@ -6,8 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -106,9 +105,38 @@ fun RiceDryerNavGraph(
                     navController.navigate(Screen.Charts.createRoute(deviceId))
                 },
                 onNavigateToDevices = {
-                    navController.navigate(Screen.DeviceList.route) {
-                        popUpTo(Screen.DeviceList.route) { inclusive = false }
-                    }
+                    navController.navigate(Screen.DeviceSettings.createRoute(deviceId))
+                }
+            )
+        }
+
+        // Device Settings
+        composable(
+            route = Screen.DeviceSettings.route,
+            arguments = listOf(navArgument("deviceId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            
+            val settingsViewModel: com.qppd.ricedryer.ui.settings.DeviceSettingsViewModel = viewModel(
+                factory = com.qppd.ricedryer.ui.settings.DeviceSettingsViewModel.factory(database, deviceId)
+            )
+            
+            // Get device data to get the name
+            val deviceData by remember(deviceId) {
+                com.qppd.ricedryer.data.repository.DeviceRepository(database).getDeviceData(deviceId)
+            }.collectAsState(initial = null)
+            
+            com.qppd.ricedryer.ui.settings.DeviceSettingsScreen(
+                deviceId = deviceId,
+                deviceName = deviceData?.deviceInfo?.deviceName ?: "Rice Dryer",
+                onNavigateBack = { navController.popBackStack() },
+                onRenameDevice = { newName ->
+                    settingsViewModel.renameDevice(newName)
+                },
+                onRemoveDevice = {
+                    settingsViewModel.removeDevice(userId)
+                    navController.popBackStack(Screen.DeviceList.route, false)
                 }
             )
         }
