@@ -1,15 +1,15 @@
-# RiceDryer ESP32 & Android Project
+# RiceDryer ESP32 & Android IoT System
 
-Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android application for remote monitoring and control.
+Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android application for remote monitoring and control via Firebase Realtime Database.
 
 ## Project Status
 
-- ESP32 Firmware: 100% Complete ✅ (Enhanced with 3-button interface & dual relay control)
-- Android Application: 40% Complete
-- Overall Progress: 65% Complete
-- Hardware Configuration: Updated for 38-pin ESP32 dev module
-- New Features: Multi-mode operation, humidity-based auto-stop, dual setpoints
-- Last Updated: November 9, 2025
+- **ESP32 Firmware:** 100% Complete ✅ (Enhanced with NTP time sync, 3-button interface & dual relay control)
+- **Android Application:** 95% Complete ✅ (Full authentication, device management, real-time monitoring, charts)
+- **Overall Progress:** 98% Complete
+- **Hardware Configuration:** 38-pin ESP32 dev module with DHT22, LCD, dual SSR
+- **Timezone:** Philippines (UTC+8) with NTP synchronization
+- **Last Updated:** November 14, 2025
 
 ## Table of Contents
 
@@ -24,8 +24,8 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 9. [Usage Instructions](#usage-instructions)
 10. [Code Structure](#code-structure)
 11. [Firebase Database Structure](#firebase-database-structure)
-12. [Implementation Progress](#implementation-progress)
-13. [Implementation Plan](#implementation-plan)
+12. [Android Application](#android-application)
+13. [NTP Time Synchronization](#ntp-time-synchronization)
 14. [Testing](#testing)
 15. [Troubleshooting](#troubleshooting)
 16. [Development Roadmap](#development-roadmap)
@@ -41,13 +41,14 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 #### Hardware Control
 - **3-Button Interface**: Setting mode toggle, start/stop control, WiFi reset functionality
 - **Potentiometer Control**: Dynamic temperature/humidity setpoint adjustment (30-80°C, 10-50%)
-- **Dual Relay System**: Independent heater and fan control for optimal drying
-- **Smart Drying Logic**: Auto-stop when humidity target reached, temperature-based heating control
+- **Dual Relay System**: Independent heater (SSR1) and fan (SSR2) control for optimal drying
+- **Smart Drying Logic**: Auto-stop when humidity target reached, PID temperature control
 - **Safety Features**: Sensor error detection, force-stop capability, confirmation dialogs
 
 #### Connectivity & Communication
 - **WiFiManager Integration**: Easy WiFi configuration through captive portal (SSID: "RiceDryer_Setup")
-- **Firebase Realtime Database**: Automatic device registration and connection management
+- **Firebase Realtime Database**: Automatic device registration and real-time data synchronization
+- **NTP Time Sync**: Network Time Protocol for accurate timestamps (Philippines timezone UTC+8)
 - **Real-time Data Streaming**: Updates every 5 seconds (temperature, humidity, both setpoints, relay status)
 - **Historical Data Logging**: Comprehensive sensor readings logged every 30 seconds
 - **Remote Control**: Responds to START, STOP, SET_TEMP, SET_HUMIDITY commands
@@ -67,17 +68,19 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 - **WiFi Credential Reset**: Hold-to-confirm WiFi reset (3-second hold protection)
 - **Sensor Validation**: DHT22 error detection with user notification
 
-### Android App Features (Planned)
+### Android App Features (95% Complete ✅)
 
-- Authentication System: Email/password login, registration, password reset, session management
-- Multi-Device Support: Manage multiple rice dryers from single account
-- Dashboard: Real-time temperature/humidity gauges, device status, SSR control
-- Charts and Analytics: Interactive line charts with zoom/pan, multiple time ranges, CSV export
-- Device Management: Pairing with 6-digit codes, device renaming, status overview
-- Profile and Settings: User profile management, notification preferences, temperature units
-- Push Notifications: Device offline alerts, threshold warnings, critical system alerts
-- Offline Support: Local caching with Room database
-- Material Design 3: Professional UI following Material Design guidelines
+- **Authentication System**: Email/password login, registration, password reset, session management
+- **Multi-Device Support**: Manage multiple rice dryers from single account
+- **Dashboard**: Real-time temperature/humidity gauges with animations, device status, heater/fan control
+- **Charts and Analytics**: Interactive line charts with zoom/pan, time range filters (1h, 6h, 24h, 1 week), statistics
+- **Device List Management**: View all paired devices, connection status, last update time
+- **Device Pairing**: Secure 6-digit code pairing with validation and expiry check
+- **Real-time Updates**: Firebase listeners for live data synchronization
+- **Offline Support**: Local caching with Room database for offline access
+- **Material Design 3**: Modern, professional UI following Material Design guidelines
+- **Navigation**: Jetpack Compose Navigation with type-safe routing
+- **Dark Theme Support**: Full Material You dynamic theming
 
 ## Quick Start
 
@@ -87,7 +90,7 @@ Hardware:
 - ESP32 Development Board (38-pin dev module)
 - DHT22 Temperature & Humidity Sensor
 - 16x2 I2C LCD Display
-- 2x Solid State Relays (SSR) - Main heater + Fan control
+- 2x Solid State Relays (SSR) - Heater (SSR1) + Fan (SSR2) control
 - 10K Potentiometer (for setting adjustments)
 - 3x Push Buttons (setting mode, start/stop, WiFi reset)
 - Power supply and connecting wires
@@ -95,8 +98,8 @@ Hardware:
 
 Software:
 - Arduino IDE (1.8.19 or higher) OR PlatformIO
-- Android Studio (latest version)
-- Firebase Account
+- Android Studio (latest version with Compose support)
+- Firebase Account with Realtime Database enabled
 - Git
 
 ### ESP32 Quick Setup
@@ -107,96 +110,127 @@ git clone https://github.com/qppd/Rice-Dryer.git
 cd Rice-Dryer
 ```
 
-2. Setup Credentials:
+2. Setup Firebase Credentials:
 ```bash
 cd source/esp32/RiceDryer
 copy FirebaseConfig.cpp.template FirebaseConfig.cpp
 copy FirebaseConfig.h.template FirebaseConfig.h
 ```
 
-3. Edit FirebaseConfig.cpp with your Firebase credentials from google-services.json
+3. Edit FirebaseConfig.cpp and FirebaseConfig.h with your Firebase credentials:
+   - Get from Firebase Console > Project Settings > Service accounts
+   - Update Firebase host, auth token, and database URL
 
 4. Install Required Libraries in Arduino IDE:
-   - WiFiManager by tzapu
-   - Firebase ESP32 Client by Mobizt
-   - DHT sensor library by Adafruit
-   - LiquidCrystal I2C
-   - ArduinoJson
+   - WiFiManager by tzapu (v2.0.16-rc.2 or higher)
+   - Firebase ESP32 Client by Mobizt (v4.4.14 or higher)
+   - DHT sensor library by Adafruit (v1.4.6 or higher)
+   - LiquidCrystal I2C (v1.1.2 or higher)
+   - ArduinoJson (v6.21.5 or higher)
 
-5. Upload to ESP32:
+5. Configure Arduino IDE:
+   - Board: ESP32 Dev Module
+   - Partition Scheme: Default 4MB with spiffs
+   - Upload Speed: 921600
+
+6. Upload to ESP32:
    - Open RiceDryer.ino in Arduino IDE
-   - Select Board: ESP32 Dev Module
-   - Upload
+   - Verify/Compile (Ctrl+R)
+   - Upload (Ctrl+U)
 
-6. First Boot:
-   - ESP32 creates WiFi AP: "RiceDryer_Setup"
-   - Connect to it (password: password123)
-   - Configure your WiFi in captive portal
-   - Note the pairing code shown on LCD
+7. First Boot Sequence:
+   - ESP32 creates WiFi AP: "RiceDryer_Setup" (password: password123)
+   - Connect to AP from phone/computer
+   - Captive portal opens automatically
+   - Configure your WiFi credentials
+   - ESP32 syncs time via NTP (Philippines timezone)
+   - Firebase connection established
+   - 6-digit pairing code displayed on LCD
 
 ### Android Quick Setup
 
 1. Navigate to Android project:
 ```bash
-cd source/android
+cd source/android/RiceDryer
 ```
 
-2. Place google-services.json:
-   - Get from Firebase Console > Project Settings
-   - Place in: source/android/app/google-services.json
+2. Setup Firebase for Android:
+   - Get google-services.json from Firebase Console > Project Settings
+   - Place in: `source/android/RiceDryer/app/google-services.json`
 
 3. Open in Android Studio:
-   - File > Open > select android folder
-   - Wait for Gradle sync
+   - File > Open > select `source/android/RiceDryer` folder
+   - Wait for Gradle sync to complete
+   - Build > Rebuild Project
 
-4. Run on Device:
-   - Connect device or start emulator
-   - Run > Run 'app'
-   - Register new account
-   - Pair device using LCD code
+4. Run on Device/Emulator:
+   - Connect Android device via USB (enable USB debugging)
+   - Or start Android emulator
+   - Run > Run 'app' (Shift+F10)
+   - Register new account or login
+   - Pair device using 6-digit code from LCD
 
-### Verification
+### Verification Checklist
 
-Verify credentials are protected:
+✅ Verify credentials are protected:
 ```bash
 git status
 # Should NOT show FirebaseConfig.cpp, FirebaseConfig.h, or google-services.json
 ```
 
+✅ ESP32 Tests:
+- LCD displays WiFi connected and IP address
+- LCD shows "Time Synced" with current date/time (Philippines timezone)
+- Firebase Ready message appears
+- Pairing code (6 digits) displayed on LCD
+- Temperature and humidity readings updating
+
+✅ Android Tests:
+- Login/Registration works
+- Device pairing successful
+- Dashboard shows real-time temperature/humidity
+- START/STOP commands work
+- Charts display historical data
+- Device list shows paired devices
+
 ## System Architecture
 
-The Rice Dryer system consists of five distinct layers:
+The Rice Dryer system follows a modern IoT architecture with five distinct layers:
 
 ### 1. Hardware Layer
-- ESP32 microcontroller
+- ESP32 microcontroller (38-pin dev module)
 - DHT22 temperature and humidity sensor
-- 16x2 I2C LCD display
-- Solid State Relay for heater control
-- Potentiometer for setpoint adjustment
-- Control button for manual operation
+- 16x2 I2C LCD display (0x27 address)
+- 2x Solid State Relays (Heater on GPIO 26, Fan on GPIO 27)
+- 10K Potentiometer (GPIO 34)
+- 3x Push buttons with debouncing
 
 ### 2. Firmware Layer (ESP32)
 - Arduino C++ based firmware
 - WiFiManager for network configuration
 - Firebase ESP32 Client for cloud connectivity
-- Real-time sensor reading and control
-- OTA update capability
+- NTP time synchronization (Philippines UTC+8)
+- PID temperature controller
+- Real-time sensor reading and control logic
 
 ### 3. Cloud Layer (Firebase)
-- Firebase Realtime Database for data storage
+- Firebase Realtime Database for data storage and synchronization
 - Firebase Authentication for user management
-- Cloud Messaging for push notifications
-- Analytics and Crashlytics for monitoring
+- Secure device pairing mechanism
+- Real-time data streaming
+- Historical data storage (30-second intervals)
 
 ### 4. Application Layer (Android)
+- Kotlin with Jetpack Compose
 - MVVM architecture pattern
+- Repository pattern for data management
+- Kotlin Coroutines and Flow for async operations
+- Room database for local caching
 - Material Design 3 UI components
-- Real-time data synchronization
-- Local caching with Room database
-- Interactive charts with MPAndroidChart
 
 ### 5. User Interface Layer
-- Dashboard with real-time gauges
+- Dashboard with animated circular gauges
+
 - Historical data charts
 - Device management interface
 - Profile and settings
@@ -1818,6 +1852,170 @@ For new features:
 - Consider implementation complexity
 - Discuss potential alternatives
 
+## Android Application
+
+### Technology Stack
+
+- **Language:** Kotlin 2.0.21
+- **UI Framework:** Jetpack Compose with Material Design 3
+- **Architecture:** MVVM (Model-View-ViewModel)
+- **Dependency Injection:** Manual factory pattern
+- **Database:** Room 2.6.1 for local caching
+- **Networking:** Firebase SDK (Auth, Realtime Database)
+- **Charts:** MPAndroidChart v3.1.0
+- **Async:** Kotlin Coroutines and Flow
+- **Navigation:** Jetpack Navigation Compose 2.8.0
+
+### Key Components
+
+#### Authentication (AuthViewModel, AuthRepository)
+- Email/password registration with validation
+- Login with remember me functionality
+- Password reset via email
+- Session management with FirebaseAuth
+
+#### Device Management (DeviceListViewModel, DeviceRepository)
+- Real-time device list with status indicators
+- Device pairing with 6-digit code validation
+- Connection status monitoring
+- Last update tracking
+
+#### Dashboard (DashboardViewModel)
+- Animated circular gauges for temperature/humidity
+- Real-time data updates via Firebase listeners
+- START/STOP command controls
+- Setpoint adjustments with sliders
+- Heater/Fan status indicators
+
+#### Charts & Analytics (ChartsViewModel)
+- Temperature and humidity line charts
+- Time range filters (1h, 6h, 24h, 1 week)
+- Statistics cards (min, max, average)
+- Zoom and pan interactions
+- Historical data visualization
+
+#### Data Models
+- **DeviceData:** Complete device state (info, status, settings, commands)
+- **DeviceStatus:** Real-time sensor readings and relay states
+- **DeviceInfo:** Device metadata and pairing information
+- **SensorReading:** Historical data points with timestamps
+
+### Firebase Integration
+
+#### Database Paths
+```
+/devices/{deviceId}/
+  ├─ deviceInfo/         # Device metadata
+  ├─ current/            # Real-time status (updated every 5s)
+  ├─ commands/           # Commands from app to device
+  ├─ commandAck/         # Acknowledgments from device
+  └─ history/{timestamp} # Historical data (every 30s)
+
+/users/{userId}/
+  └─ devices: [...]      # Array of paired device IDs
+
+/devicePairing/{code}/
+  ├─ deviceId
+  ├─ generatedAt
+  ├─ expiresAt
+  └─ used
+```
+
+#### Real-time Listeners
+- Device status updates (temperature, humidity, relay states)
+- User's device list synchronization
+- Command acknowledgment monitoring
+- Historical data streaming
+
+### UI Screens
+
+1. **Login/Register:** Authentication with form validation
+2. **Device List:** Grid of paired devices with status
+3. **Dashboard:** Main control screen with gauges and controls
+4. **Charts:** Historical data visualization with filters
+5. **Pair Device:** 6-digit code input with visual feedback
+
+### Local Caching
+
+Room database entities:
+- **CachedDevice:** Offline device information
+- **CachedReading:** Historical sensor readings
+
+## NTP Time Synchronization
+
+### Overview
+
+The ESP32 firmware now uses Network Time Protocol (NTP) to synchronize time with internet time servers. This ensures accurate timestamps for all data logging, pairing code expiry, and historical data.
+
+### Configuration
+
+- **Timezone:** Philippines (UTC+8, no daylight saving time)
+- **NTP Servers:**
+  - Primary: `time.google.com`
+  - Secondary: `pool.ntp.org`
+  - Tertiary: `time.cloudflare.com`
+
+### Implementation Details
+
+#### ESP32 Functions
+
+```cpp
+void initNTP();                    // Initialize NTP sync (called after WiFi connects)
+unsigned long long getTimestamp(); // Get Unix timestamp in milliseconds
+```
+
+#### Timestamp Format
+- **Type:** `unsigned long long` (64-bit)
+- **Unit:** Milliseconds since Unix epoch (January 1, 1970)
+- **Example:** `1700000000000` = November 14, 2023
+
+#### Firebase Data Structure Changes
+
+**Before NTP (using millis()):**
+```json
+{
+  "lastUpdate": 123456789,  // Time since boot in milliseconds
+  "timestamp": 987654321    // Relative time, resets on reboot
+}
+```
+
+**After NTP (using real timestamps):**
+```json
+{
+  "lastUpdate": 1700000000000,  // Unix timestamp in milliseconds
+  "timestamp": 1700000000000    // Absolute time, persists across reboots
+}
+```
+
+#### Benefits
+
+1. **Accurate Timestamps:** Wall-clock time instead of relative time
+2. **Persistent Data:** Historical data timestamps survive device reboots
+3. **Cross-Device Sync:** Multiple devices show consistent times
+4. **Pairing Expiry:** 10-minute pairing code expiry works correctly
+5. **Time Filtering:** Charts can filter by actual time ranges
+6. **Timezone Support:** Displays time in Philippines timezone (UTC+8)
+
+#### Fallback Mechanism
+
+If NTP sync fails (no internet, blocked ports):
+- System falls back to `millis()` (time since boot)
+- LCD shows "Time Sync Failed, Using millis()"
+- Device continues to operate normally
+- Timestamps will be relative instead of absolute
+
+### Android Integration
+
+#### Time Display
+- Historical charts show actual time (HH:mm format)
+- Time range filters work with real Unix timestamps
+- "Last Update" shows time ago (e.g., "5m ago", "2h ago")
+
+#### Pairing Code Validation
+- Checks `expiresAt` field against current time
+- Validates 10-minute expiry window
+- Rejects expired codes automatically
+
 ## License
 
 This project is licensed under the MIT License.
@@ -1850,8 +2048,8 @@ SOFTWARE.
 
 ### Project Information
 
-Project Name: RiceDryer ESP32 & Android
-Version: 1.0 (In Development)
+Project Name: RiceDryer ESP32 & Android IoT System
+Version: 1.0 (98% Complete)
 Development Team: QPPD
 Repository: https://github.com/qppd/Rice-Dryer
 
@@ -1859,17 +2057,25 @@ Repository: https://github.com/qppd/Rice-Dryer
 
 For technical support:
 - Open an issue on GitHub
-- Email: [Project maintainer email]
+- Check documentation in `/docs` folder
+- Review troubleshooting section
 
 For collaboration:
 - Follow contribution guidelines
 - Submit pull requests
 - Join project discussions
 
+### Documentation
+
+- ESP32 Setup: `source/esp32/README.md`
+- Android Setup: `source/android/FIREBASE_SETUP.md`
+- Firebase Paths: `source/android/FIREBASE_PATH_ALIGNMENT.md`
+- NTP Implementation: `source/esp32/NTP_IMPLEMENTATION.md`
+
 ### Social
 
 - GitHub: https://github.com/qppd
-- Project Page: [Project website]
+- Project Repository: https://github.com/qppd/Rice-Dryer
 
 ### Acknowledgments
 

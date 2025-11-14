@@ -12,6 +12,8 @@ source/esp32/RiceDryer/FirebaseConfig.h
 
 # Android Firebase Configuration
 source/android/app/google-services.json
+source/android/RiceDryer/app/google-services.json
+google-services.json
 
 # API Keys and Secrets
 *.key

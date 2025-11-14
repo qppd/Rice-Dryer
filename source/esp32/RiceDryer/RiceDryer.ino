@@ -10,13 +10,6 @@
 #include <addons/TokenHelper.h>
 #include <addons/RTDBHelper.h>
 
-// OTA Updates
-#include <ArduinoOTA.h>
-
-// Utilities
-#include <ArduinoJson.h>
-#include <EEPROM.h>
-
 // Custom modules
 #include "WiFiManagerCustom.h"
 #include "FirebaseConfig.h"
@@ -44,7 +37,7 @@ WiFiManagerCustom wifiManager;
 String deviceId;
 String pairingCode = "";
 bool devicePaired = false;
-unsigned long pairingCodeExpiry = 0;
+unsigned long long pairingCodeExpiry = 0;  // Changed to unsigned long long for Unix timestamps
 
 // Components
 Button button1(BUTTON_1);
@@ -141,7 +134,62 @@ bool initWiFi() {
   delay(2000);
   
   wifiConnected = true;
+  
+  // Initialize NTP for real timestamps
+  initNTP();
+  
   return true;
+}
+
+// Initialize NTP (Network Time Protocol) for Philippines timezone
+void initNTP() {
+  lcd.clear();
+  lcd.print(0, 0, "Syncing Time...");
+  
+  // Philippines timezone: UTC+8, no DST
+  // NTP servers for Philippines
+  configTime(8 * 3600, 0, "time.google.com", "pool.ntp.org", "time.cloudflare.com");
+  
+  // Wait for time to be set
+  int retries = 0;
+  while (time(nullptr) < 100000 && retries < 20) {
+    delay(500);
+    Serial.print(".");
+    retries++;
+  }
+  
+  if (time(nullptr) > 100000) {
+    lcd.clear();
+    lcd.print(0, 0, "Time Synced!");
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo)) {
+      char timeStr[20];
+      strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M", &timeinfo);
+      lcd.print(0, 1, timeStr);
+      Serial.println("\nNTP time synchronized: " + String(timeStr));
+    }
+    delay(2000);
+  } else {
+    lcd.clear();
+    lcd.print(0, 0, "Time Sync Failed");
+    lcd.print(0, 1, "Using millis()");
+    Serial.println("\nNTP sync failed, will use millis()");
+    delay(2000);
+  }
+}
+
+// Get current Unix timestamp in milliseconds
+unsigned long long getTimestamp() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  unsigned long long timestamp = (unsigned long long)(tv.tv_sec) * 1000ULL + (tv.tv_usec / 1000ULL);
+  
+  // If NTP hasn't synced yet, fall back to millis()
+  if (timestamp < 1000000000000ULL) {
+    return millis();
+  }
+  
+  return timestamp;
 }
 
 // Initialize Firebase connection
@@ -182,7 +230,7 @@ void registerDevice() {
   json.set("macAddress", deviceId);
   json.set("firmwareVersion", "1.0.0");
   json.set("hardwareVersion", "1.0");
-  json.set("lastBoot", millis());
+  json.set("lastBoot", (double)getTimestamp());  // Use NTP timestamp
   
   if (Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
     Serial.println("Device registered successfully");
@@ -214,13 +262,15 @@ void checkPairingStatus() {
 // Start pairing mode
 void startPairingMode() {
   pairingCode = generatePairingCode();
-  pairingCodeExpiry = millis() + PAIRING_CODE_VALIDITY;
+  unsigned long long currentTime = getTimestamp();
+  pairingCodeExpiry = currentTime + PAIRING_CODE_VALIDITY;
   
   // Store pairing code in Firebase
   String path = "/devicePairing/" + pairingCode;
   FirebaseJson json;
   json.set("deviceId", deviceId);
-  json.set("expiresAt", pairingCodeExpiry);
+  json.set("generatedAt", (double)currentTime);
+  json.set("expiresAt", (double)pairingCodeExpiry);
   json.set("used", false);
   
   Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json);
@@ -246,7 +296,7 @@ void sendDataToFirebase() {
   json.set("currentMode", (int)currentMode);
   json.set("pidOutput", tempController.getOutput());
   json.set("online", true);
-  json.set("lastUpdate", millis());
+  json.set("lastUpdate", (double)getTimestamp());  // Use NTP timestamp
   
   if (!Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
     Serial.println("Failed to send data: " + fbdo.errorReason());
@@ -257,8 +307,8 @@ void sendDataToFirebase() {
 void logHistoricalData() {
   if (!firebaseConnected || !devicePaired) return;
   
-  String timestamp = String(millis());
-  String path = "/devices/" + deviceId + "/history/" + timestamp;
+  unsigned long long timestamp = getTimestamp();
+  String path = "/devices/" + deviceId + "/history/" + String((unsigned long)(timestamp / 1000));  // Use seconds for key
   
   FirebaseJson json;
   json.set("temperature", temperature);
@@ -269,6 +319,7 @@ void logHistoricalData() {
   json.set("relay2Status", relay2.isOn());
   json.set("dryingActive", dryingActive);
   json.set("pidOutput", tempController.getOutput());
+  json.set("timestamp", (double)timestamp);  // Also include timestamp in the data
   
   if (!Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json)) {
     Serial.println("Failed to log history: " + fbdo.errorReason());
@@ -318,7 +369,7 @@ void acknowledgeCommand(String command) {
   String path = "/devices/" + deviceId + "/commandAck";
   FirebaseJson json;
   json.set("command", command);
-  json.set("timestamp", millis());
+  json.set("timestamp", (double)getTimestamp());  // Use NTP timestamp
   json.set("acknowledged", true);
   
   Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json);
@@ -587,10 +638,6 @@ void setup() {
     delay(5000);
   }
   
-  // Setup OTA
-  ArduinoOTA.setHostname("RiceDryer");
-  ArduinoOTA.begin();
-  
   lcd.clear();
   if (devicePaired) {
     lcd.print(0, 0, "Rice Dryer Ready");
@@ -602,9 +649,6 @@ void setup() {
 }
 
 void loop() {
-  // Handle OTA updates
-  ArduinoOTA.handle();
-  
   // Check WiFi connection
   if (!wifiManager.isConnected()) {
     wifiConnected = false;
@@ -623,7 +667,8 @@ void loop() {
   
   // Check if still in pairing mode
   if (!devicePaired) {
-    if (millis() > pairingCodeExpiry) {
+    unsigned long long currentTime = getTimestamp();
+    if (currentTime > pairingCodeExpiry) {
       // Regenerate pairing code
       startPairingMode();
     }
