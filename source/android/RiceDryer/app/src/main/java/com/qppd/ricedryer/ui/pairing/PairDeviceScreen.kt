@@ -77,7 +77,7 @@ fun PairDeviceScreen(
             // Device ID Input
             OutlinedTextField(
                 value = deviceId,
-                onValueChange = { deviceId = it.uppercase() },
+                onValueChange = { deviceId = it.trim().uppercase() },
                 label = { Text("Device ID (MAC Address)") },
                 placeholder = { Text("AABBCCDDEEFF") },
                 singleLine = true,
@@ -166,9 +166,9 @@ fun PairDeviceScreen(
             // Pair Button
             Button(
                 onClick = {
-                    viewModel.pairDevice(deviceId, pairingCode)
+                    viewModel.pairDevice(deviceId.trim(), pairingCode)
                 },
-                enabled = deviceId.isNotBlank() && 
+                enabled = deviceId.trim().isNotBlank() && 
                          pairingCode.length == 6 && 
                          uiState !is PairDeviceUiState.Loading,
                 modifier = Modifier.fillMaxWidth()
