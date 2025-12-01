@@ -236,12 +236,32 @@ private fun TemperatureChart(readings: List<com.qppd.ricedryer.data.model.Sensor
             }
         },
         update = { chart ->
-            // Use index as X value instead of timestamp for better display
-            val tempEntries = readings.mapIndexed { index, reading -> 
-                Entry(index.toFloat(), reading.temperature) 
+            // Validate readings to prevent chart errors
+            if (readings.isEmpty()) {
+                chart.clear()
+                chart.invalidate()
+                return@AndroidView
             }
-            val setpointEntries = readings.mapIndexed { index, reading -> 
-                Entry(index.toFloat(), reading.setpointTemp) 
+            
+            // Use index as X value instead of timestamp for better display
+            val tempEntries = readings.mapIndexedNotNull { index, reading ->
+                // Validate data to prevent negative array size
+                if (reading.temperature.isFinite() && reading.temperature >= -100 && reading.temperature <= 200) {
+                    Entry(index.toFloat(), reading.temperature)
+                } else null
+            }
+            
+            val setpointEntries = readings.mapIndexedNotNull { index, reading ->
+                if (reading.setpointTemp.isFinite() && reading.setpointTemp >= -100 && reading.setpointTemp <= 200) {
+                    Entry(index.toFloat(), reading.setpointTemp)
+                } else null
+            }
+            
+            // Only update chart if we have valid entries
+            if (tempEntries.isEmpty() && setpointEntries.isEmpty()) {
+                chart.clear()
+                chart.invalidate()
+                return@AndroidView
             }
             
             val tempDataSet = LineDataSet(tempEntries, "Actual").apply {
@@ -283,10 +303,11 @@ private fun HumidityChart(readings: List<com.qppd.ricedryer.data.model.SensorRea
                 xAxis.position = XAxis.XAxisPosition.BOTTOM
                 xAxis.setDrawGridLines(false)
                 xAxis.valueFormatter = object : ValueFormatter() {
-                    private val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
                     override fun getFormattedValue(value: Float): String {
-                        // ESP32 now uses NTP timestamps (Unix time in milliseconds)
-                        return dateFormat.format(Date(value.toLong()))
+                        // Show relative time based on entry index
+                        val index = value.toInt()
+                        val minutes = index * 0.5 // Assuming 30 second intervals
+                        return "${minutes.toInt()}m"
                     }
                 }
                 
@@ -297,8 +318,33 @@ private fun HumidityChart(readings: List<com.qppd.ricedryer.data.model.SensorRea
             }
         },
         update = { chart ->
-            val humidityEntries = readings.map { Entry(it.timestamp.toFloat(), it.humidity) }
-            val setpointEntries = readings.map { Entry(it.timestamp.toFloat(), it.setpointHumidity) }
+            // Validate readings to prevent chart errors
+            if (readings.isEmpty()) {
+                chart.clear()
+                chart.invalidate()
+                return@AndroidView
+            }
+            
+            // Use index as X value instead of timestamp for consistency and stability
+            val humidityEntries = readings.mapIndexedNotNull { index, reading ->
+                // Validate data to prevent negative array size
+                if (reading.humidity.isFinite() && reading.humidity >= 0) {
+                    Entry(index.toFloat(), reading.humidity)
+                } else null
+            }
+            
+            val setpointEntries = readings.mapIndexedNotNull { index, reading ->
+                if (reading.setpointHumidity.isFinite() && reading.setpointHumidity >= 0) {
+                    Entry(index.toFloat(), reading.setpointHumidity)
+                } else null
+            }
+            
+            // Only update chart if we have valid entries
+            if (humidityEntries.isEmpty() && setpointEntries.isEmpty()) {
+                chart.clear()
+                chart.invalidate()
+                return@AndroidView
+            }
             
             val humidityDataSet = LineDataSet(humidityEntries, "Actual").apply {
                 color = android.graphics.Color.rgb(76, 175, 80)

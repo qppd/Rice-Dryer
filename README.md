@@ -5,11 +5,11 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 ## Project Status
 
 - **ESP32 Firmware:** 100% Complete ✅ (Enhanced with NTP time sync, 3-button interface & dual relay control)
-- **Android Application:** 95% Complete ✅ (Full authentication, device management, real-time monitoring, charts)
-- **Overall Progress:** 98% Complete
-- **Hardware Configuration:** 38-pin ESP32 dev module with DHT22, LCD, dual SSR
+- **Android Application:** 98% Complete ✅ (Full authentication, device management, real-time monitoring, charts with fixes)
+- **Hardware Configuration:** 38-pin ESP32 dev module with DHT22, 20x4 LCD, dual SSR (low trigger)
 - **Timezone:** Philippines (UTC+8) with NTP synchronization
-- **Last Updated:** November 14, 2025
+- **Last Updated:** December 2, 2025
+- **3D Models:** Pending (Only remaining item for complete project)
 
 ## Table of Contents
 
@@ -251,16 +251,19 @@ DHT22 Temperature and Humidity Sensor:
 - Sampling Rate: 0.5 Hz (once every 2 seconds)
 
 16x2 I2C LCD Display:
-- Display: 16 characters x 2 lines
+- Display: 20 characters x 4 lines
 - Backlight: Blue LED
 - Interface: I2C (SDA, SCL)
 - Address: 0x27 or 0x3F
 
 Solid State Relay (SSR):
 - Control Voltage: 3-32V DC
+- Control Current: 5-25 mA
 - Load Voltage: 24-380V AC
-- Load Current: 25A
-- Zero-crossing switching
+- Load Current: 25A continuous
+- Switching Time: 10ms
+- Zero-crossing: Yes
+- Trigger Type: Low trigger (active low)
 
 Additional Components:
 - 10K Potentiometer: Setpoint adjustment
@@ -802,6 +805,8 @@ Set Humidity:
 ```
 Pairing Code:
 XXXXXX
+MAC Address:
+AABBCCDDEEFF
 ```
 
 #### Drying Logic
@@ -2049,7 +2054,7 @@ SOFTWARE.
 ### Project Information
 
 Project Name: RiceDryer ESP32 & Android IoT System
-Version: 1.0 (98% Complete)
+Version: 1.0 (99% Complete)
 Development Team: QPPD
 Repository: https://github.com/qppd/Rice-Dryer
 
@@ -2103,8 +2108,8 @@ Special thanks to all contributors and the open-source community.
 
 ---
 
-Project Status: Active Development
-Last Updated: October 24, 2025
-Version: 1.0-alpha
-Completion: 60%
-Next Milestone: Android Dashboard Implementation
+Project Status: Nearly Complete
+Last Updated: December 2, 2025
+Version: 1.0
+Completion: 99%
+Next Milestone: 3D Model Design

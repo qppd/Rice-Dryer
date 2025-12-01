@@ -39,6 +39,12 @@ String pairingCode = "";
 bool devicePaired = false;
 unsigned long long pairingCodeExpiry = 0;  // Changed to unsigned long long for Unix timestamps
 
+// LCD state tracking to prevent flickering
+String lastLcdLine0 = "";
+String lastLcdLine1 = "";
+String lastLcdLine2 = "";
+String lastLcdLine3 = "";
+
 // Components
 Button button1(BUTTON_1);
 Button button2(BUTTON_2);
@@ -535,25 +541,50 @@ void controlDrying() {
 
 // Update LCD display based on current mode
 void updateDisplay() {
-  lcd.clear();
+  String line0 = "";
+  String line1 = "";
+  String line2 = "";
+  String line3 = "";
   
   switch (currentMode) {
     case SET_TEMP_MODE:
-      lcd.print(0, 0, "Set Temperature:");
-      lcd.print(0, 1, String(setpointTemp, 1) + "C (Use Pot)");
+      line0 = "Set Temperature:";
+      line1 = String(setpointTemp, 1) + "C (Use Pot)";
       break;
       
     case SET_HUMIDITY_MODE:
-      lcd.print(0, 0, "Set Humidity:");
-      lcd.print(0, 1, String(setpointHumidity, 1) + "% (Use Pot)");
+      line0 = "Set Humidity:";
+      line1 = String(setpointHumidity, 1) + "% (Use Pot)";
       break;
       
     default: // NORMAL_MODE
-      lcd.print(0, 0, dryingActive ? "Drying: ON " : "Drying: OFF");
-      char buf[17];
+      line0 = dryingActive ? "Drying: ON " : "Drying: OFF";
+      char buf[21];
       snprintf(buf, sizeof(buf), "T:%2.1f H:%2.1f", temperature, humidity);
-      lcd.print(0, 1, String(buf));
+      line1 = String(buf);
       break;
+  }
+  
+  // Only update lines that changed
+  if (line0 != lastLcdLine0) {
+    lcd.print(0, 0, "                    "); // Clear line with spaces
+    lcd.print(0, 0, line0.c_str());
+    lastLcdLine0 = line0;
+  }
+  if (line1 != lastLcdLine1) {
+    lcd.print(0, 1, "                    ");
+    lcd.print(0, 1, line1.c_str());
+    lastLcdLine1 = line1;
+  }
+  if (line2 != lastLcdLine2) {
+    lcd.print(0, 2, "                    ");
+    lcd.print(0, 2, line2.c_str());
+    lastLcdLine2 = line2;
+  }
+  if (line3 != lastLcdLine3) {
+    lcd.print(0, 3, "                    ");
+    lcd.print(0, 3, line3.c_str());
+    lastLcdLine3 = line3;
   }
 }
 
@@ -680,10 +711,29 @@ void loop() {
     // Check if device was paired
     checkPairingStatus();
     
-    lcd.print(0, 0, "Pairing Code:");
-    lcd.print(0, 1, pairingCode.c_str());
-    lcd.print(0, 2, "MAC Address:");
-    lcd.print(0, 3, deviceId.c_str());
+    // Only update if changed (prevent flickering)
+    String line0 = "Pairing Code:";
+    String line1 = String(pairingCode.c_str());
+    String line2 = "MAC Address:";
+    String line3 = String(deviceId.c_str());
+    
+    if (line0 != lastLcdLine0) {
+      lcd.print(0, 0, line0.c_str());
+      lastLcdLine0 = line0;
+    }
+    if (line1 != lastLcdLine1) {
+      lcd.print(0, 1, line1.c_str());
+      lastLcdLine1 = line1;
+    }
+    if (line2 != lastLcdLine2) {
+      lcd.print(0, 2, line2.c_str());
+      lastLcdLine2 = line2;
+    }
+    if (line3 != lastLcdLine3) {
+      lcd.print(0, 3, line3.c_str());
+      lastLcdLine3 = line3;
+    }
+    
     delay(500);
     return;
   }

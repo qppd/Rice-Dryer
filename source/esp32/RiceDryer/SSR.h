@@ -13,5 +13,7 @@ public:
 private:
     uint8_t relayPin;
     bool state;
+    void sendPulse();
+    static const int PULSE_DURATION = 50; // milliseconds for latching relay pulse
 };
 #endif
