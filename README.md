@@ -40,7 +40,7 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 
 #### Hardware Control
 - **3-Button Interface**: Setting mode toggle, start/stop control, WiFi reset functionality
-- **Potentiometer Control**: Dynamic temperature/humidity setpoint adjustment (30-80°C, 10-50%)
+- **Remote Setpoint Control**: Temperature/humidity setpoint adjustment via Android app (30-80°C, 10-50%)
 - **Dual Relay System**: Independent heater (SSR1) and fan (SSR2) control for optimal drying
 - **Smart Drying Logic**: Auto-stop when humidity target reached, PID temperature control
 - **Safety Features**: Sensor error detection, force-stop capability, confirmation dialogs
@@ -91,7 +91,6 @@ Hardware:
 - DHT22 Temperature & Humidity Sensor
 - 16x2 I2C LCD Display
 - 2x Solid State Relays (SSR) - Heater (SSR1) + Fan (SSR2) control
-- 10K Potentiometer (for setting adjustments)
 - 3x Push Buttons (setting mode, start/stop, WiFi reset)
 - Power supply and connecting wires
 - Pull-up resistors (or use ESP32 internal pull-ups)
@@ -202,7 +201,6 @@ The Rice Dryer system follows a modern IoT architecture with five distinct layer
 - DHT22 temperature and humidity sensor
 - 16x2 I2C LCD display (0x27 address)
 - 2x Solid State Relays (Heater on GPIO 26, Fan on GPIO 27)
-- 10K Potentiometer (GPIO 34)
 - 3x Push buttons with debouncing
 
 ### 2. Firmware Layer (ESP32)
@@ -266,7 +264,6 @@ Solid State Relay (SSR):
 - Trigger Type: Low trigger (active low)
 
 Additional Components:
-- 10K Potentiometer: Setpoint adjustment
 - Push Button: Manual control and mode selection
 - Power Supply: 5V/2A for ESP32 and peripherals
 - Solar Panel (Optional): 12V/10W for off-grid operation
@@ -289,11 +286,6 @@ Relay Controls:
 - Relay 2 (Fan/Secondary) -> GPIO 18
 - VCC -> 3.3V/5V (depending on relay module)
 - GND -> GND
-
-Potentiometer (Settings Control):
-- VCC -> 3.3V
-- GND -> GND
-- OUT -> GPIO 34 (ADC1_CH6 - optimal for analog reading)
 
 Control Buttons:
 - Button 1 (Setting Mode) -> GPIO 17 + GND (internal pull-up)
@@ -320,7 +312,6 @@ Custom Modules:
 - WiFiManagerCustom: WiFi connection wrapper
 - Button: Button debouncing and state management
 - DHT22Sensor: Temperature/humidity reading
-- Potentiometer: Analog input reading
 - SSR: Relay control
 - LCDDisplay: Display management
 
@@ -372,7 +363,6 @@ Rice-Dryer/
 │   │       ├── Button.cpp/h
 │   │       ├── DHT22Sensor.cpp/h
 │   │       ├── LCDDisplay.cpp/h
-│   │       ├── Potentiometer.cpp/h
 │   │       ├── SSR.cpp/h
 │   │       └── PinConfig.h
 │   │
@@ -768,19 +758,6 @@ Connection Issues:
 - **Hold 3 seconds**: Resets WiFi credentials and restarts device
 - **Short press**: Cancels reset operation (safety feature)
 
-#### Potentiometer Control (GPIO 34)
-
-**In Normal Mode:**
-- Potentiometer has no effect (prevents accidental changes)
-
-**In Set Temperature Mode:**
-- Range: 30-80°C
-- Real-time adjustment with LCD feedback
-
-**In Set Humidity Mode:**
-- Range: 10-50% (target humidity to stop drying)
-- Real-time adjustment with LCD feedback
-
 #### Display Modes
 
 **1. Normal Mode:**
@@ -792,13 +769,13 @@ T:25.5 H:45.2
 **2. Set Temperature Mode:**
 ```
 Set Temperature:
-65.0C (Use Pot)
+65.0C (Use Android App)
 ```
 
 **3. Set Humidity Mode:**
 ```
 Set Humidity:
-20.0% (Use Pot)
+20.0% (Use Android App)
 ```
 
 **4. Pairing Mode:**
@@ -812,8 +789,8 @@ AABBCCDDEEFF
 #### Drying Logic
 
 **Automatic Operation:**
-1. User sets temperature setpoint (Button 1 → Potentiometer)
-2. User sets humidity target (Button 1 → Button 1 → Potentiometer)
+1. User sets temperature setpoint via Android app
+2. User sets humidity target via Android app
 3. User starts drying (Button 2)
 4. System heats to temperature setpoint using Relay 1
 5. Fan runs continuously via Relay 2 for air circulation
@@ -833,7 +810,7 @@ AABBCCDDEEFF
 
 **Test Mode (Hold Button 1 during startup):**
 - Component testing suite
-- Tests: DHT22, Potentiometer, Relays, LCD
+- Tests: DHT22, Relays, LCD
 - Use Button 1 to cycle through tests
 
 ### Android App Usage
@@ -915,12 +892,6 @@ DHT22Sensor:
 - Error handling
 - Data validation
 - Methods: readTemperature(), readHumidity(), isValid()
-
-Potentiometer:
-- Analog input reading
-- Value mapping (0-4095 to 30-80°C)
-- Smoothing algorithm
-- Methods: readValue(), getSetpoint()
 
 SSR:
 - Solid State Relay control
@@ -1413,7 +1384,6 @@ Test Mode:
 2. ESP32 enters test mode
 3. Press button to cycle through tests:
    - DHT22 Sensor reading
-   - Potentiometer reading
    - SSR activation (heater on/off)
    - LCD Display modes
 
@@ -1423,7 +1393,6 @@ Manual Testing Checklist:
 - [ ] LCD shows pairing code on first boot
 - [ ] Temperature readings are accurate (±0.5°C)
 - [ ] Humidity readings are accurate (±2%)
-- [ ] Potentiometer adjusts setpoint correctly
 - [ ] SSR turns heater on/off based on setpoint
 - [ ] Real-time data updates in Firebase every 5 seconds
 - [ ] Historical data logs every 30 seconds
@@ -1510,7 +1479,6 @@ SSR Not Working:
 LCD Not Displaying:
 - Check I2C wiring (SDA to GPIO 21, SCL to GPIO 22)
 - Verify LCD address (0x27 or 0x3F) in code
-- Check contrast adjustment (potentiometer on LCD backpack)
 - Verify 5V power supply to LCD
 - Try I2C scanner sketch to detect address
 

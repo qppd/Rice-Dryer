@@ -4,6 +4,7 @@
 // WiFi and Network
 #include <WiFi.h>
 #include <time.h>
+#include <Preferences.h>
 
 // Firebase
 #include <Firebase_ESP_Client.h>
@@ -17,7 +18,6 @@
 // Include component headers
 #include "Button.h"
 #include "DHT22Sensor.h"
-#include "Potentiometer.h"
 #include "SSR.h"
 #include "LCDDisplay.h"
 #include "TemperatureController.h"
@@ -32,6 +32,9 @@ FirebaseConfig config;
 
 // WiFi Manager
 WiFiManagerCustom wifiManager;
+
+// Preferences for persistent storage
+Preferences preferences;
 
 // Device Information
 String deviceId;
@@ -50,7 +53,6 @@ Button button1(BUTTON_1);
 Button button2(BUTTON_2);
 Button button3(BUTTON_3);
 DHT22Sensor dht(DHT_PIN);
-Potentiometer pot(POT_1);
 SSR relay1(RELAY_1);
 SSR relay2(RELAY_2);
 LCDDisplay lcd(LCD_ADDR, LCD_COLS, LCD_ROWS);
@@ -74,11 +76,18 @@ const unsigned long PAIRING_CODE_VALIDITY = 600000; // 10 minutes
 
 float temperature = 0.0;
 float humidity = 0.0;
-int potValue = 0;
 float setpointTemp = 40.0;     // Default target temperature
 float setpointHumidity = 20.0; // Default target humidity (stop when reached)
 bool wifiConnected = false;
 bool firebaseConnected = false;
+
+// Button adjustment settings
+const float TEMP_STEP = 1.0;      // Temperature adjustment increment (1°C)
+const float HUMIDITY_STEP = 1.0;  // Humidity adjustment increment (1%)
+const float TEMP_MIN = 30.0;
+const float TEMP_MAX = 80.0;
+const float HUMIDITY_MIN = 10.0;
+const float HUMIDITY_MAX = 50.0;
 
 // UI and control states
 enum SettingMode {
@@ -250,19 +259,76 @@ void registerDevice() {
 
 // Check if device is already paired
 void checkPairingStatus() {
+  // First check local storage (persists across reboots)
+  preferences.begin("ricedryer", false);
+  bool localPaired = preferences.getBool("paired", false);
+  String localUserId = preferences.getString("userId", "");
+  preferences.end();
+  
+  if (localPaired && localUserId != "") {
+    // Device was paired before - verify with Firebase
+    String path = "/devices/" + deviceId + "/deviceInfo/pairedTo";
+    if (Firebase.RTDB.getString(&fbdo, path.c_str())) {
+      String pairedTo = fbdo.stringData();
+      
+      // Check if still paired to the same user
+      if (pairedTo == localUserId) {
+        devicePaired = true;
+        lcd.clear();
+        lcd.print(0, 0, "Device Paired!");
+        lcd.print(0, 1, "Ready to use");
+        Serial.println("Device already paired to: " + localUserId);
+        delay(1000);
+        return;
+      } else if (pairedTo == "" || pairedTo == "null") {
+        // Unpaired on Firebase - clear local storage
+        Serial.println("Device was unpaired remotely");
+        clearPairingData();
+      } else {
+        // Paired to different user - clear and re-pair
+        Serial.println("Device paired to different user, clearing local data");
+        clearPairingData();
+      }
+    }
+  }
+  
+  // Not paired locally or verification failed - check Firebase
   String path = "/devices/" + deviceId + "/deviceInfo/pairedTo";
   if (Firebase.RTDB.getString(&fbdo, path.c_str())) {
     String pairedTo = fbdo.stringData();
     if (pairedTo != "" && pairedTo != "null") {
+      // Paired on Firebase but not locally - save to local storage
       devicePaired = true;
+      savePairingData(pairedTo);
       lcd.clear();
       lcd.print(0, 0, "Device Paired!");
+      lcd.print(0, 1, "Synced from cloud");
+      Serial.println("Pairing synced from Firebase: " + pairedTo);
       delay(1000);
     } else {
-      // Generate pairing code
+      // Not paired - generate pairing code
       startPairingMode();
     }
   }
+}
+
+// Save pairing data to persistent storage
+void savePairingData(String userId) {
+  preferences.begin("ricedryer", false);
+  preferences.putBool("paired", true);
+  preferences.putString("userId", userId);
+  preferences.end();
+  Serial.println("Pairing data saved to flash: " + userId);
+}
+
+// Clear pairing data from persistent storage
+void clearPairingData() {
+  preferences.begin("ricedryer", false);
+  preferences.putBool("paired", false);
+  preferences.putString("userId", "");
+  preferences.end();
+  devicePaired = false;
+  Serial.println("Pairing data cleared from flash");
 }
 
 // Start pairing mode
@@ -281,6 +347,7 @@ void startPairingMode() {
   
   Firebase.RTDB.setJSON(&fbdo, path.c_str(), &json);
   
+  Serial.println("Pairing mode started - Code: " + pairingCode);
   lcd.clear();
   lcd.print(0, 0, "Pairing Code:");
   lcd.print(0, 1, pairingCode.c_str());
@@ -394,15 +461,7 @@ void testDHT22() {
   delay(2000);
 }
 
-void testPotentiometer() {
-  lcd.clear();
-  lcd.print(0, 0, "Testing Pot...");
-  int val = pot.readValue();
-  char buf[17];
-  snprintf(buf, sizeof(buf), "Value: %4d", val);
-  lcd.print(0, 1, String(buf));
-  delay(2000);
-}
+
 
 void testSSR() {
   lcd.clear();
@@ -445,21 +504,45 @@ bool isButtonPressed(Button& button, bool& lastState, unsigned long& lastPress) 
   return pressed;
 }
 
-// Handle potentiometer input based on current mode
-void handlePotentiometer() {
-  potValue = pot.readValue();
+// Handle button-based setpoint adjustment
+void handleSetpointAdjustment() {
+  // Button 2: Increase setpoint
+  if (isButtonPressed(button2, button2LastState, button2LastPress)) {
+    switch (currentMode) {
+      case SET_TEMP_MODE:
+        setpointTemp += TEMP_STEP;
+        if (setpointTemp > TEMP_MAX) setpointTemp = TEMP_MAX;
+        tempController.setSetpoint(setpointTemp);
+        modeStartTime = millis(); // Reset timeout when adjusting
+        break;
+      case SET_HUMIDITY_MODE:
+        setpointHumidity += HUMIDITY_STEP;
+        if (setpointHumidity > HUMIDITY_MAX) setpointHumidity = HUMIDITY_MAX;
+        modeStartTime = millis(); // Reset timeout when adjusting
+        break;
+      case NORMAL_MODE:
+        // In normal mode, button 2 starts/stops drying (handled elsewhere)
+        break;
+    }
+  }
   
-  switch (currentMode) {
-    case SET_TEMP_MODE:
-      setpointTemp = map(potValue, 0, 4095, 30, 80); // Temperature range: 30-80°C
-      tempController.setSetpoint(setpointTemp);       // Update PID setpoint
-      break;
-    case SET_HUMIDITY_MODE:
-      setpointHumidity = map(potValue, 0, 4095, 10, 50); // Humidity range: 10-50%
-      break;
-    default:
-      // In normal mode, pot doesn't change setpoints
-      break;
+  // Button 3: Decrease setpoint
+  if (currentMode != NORMAL_MODE && isButtonPressed(button3, button3LastState, button3LastPress)) {
+    switch (currentMode) {
+      case SET_TEMP_MODE:
+        setpointTemp -= TEMP_STEP;
+        if (setpointTemp < TEMP_MIN) setpointTemp = TEMP_MIN;
+        tempController.setSetpoint(setpointTemp);
+        modeStartTime = millis(); // Reset timeout when adjusting
+        break;
+      case SET_HUMIDITY_MODE:
+        setpointHumidity -= HUMIDITY_STEP;
+        if (setpointHumidity < HUMIDITY_MIN) setpointHumidity = HUMIDITY_MIN;
+        modeStartTime = millis(); // Reset timeout when adjusting
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -480,6 +563,27 @@ void resetWiFiCredentials() {
   ESP.restart();
 }
 
+// Factory reset - clear all stored data
+void factoryReset() {
+  lcd.clear();
+  lcd.print(0, 0, "Factory Reset");
+  lcd.print(0, 1, "Clearing data...");
+  
+  // Clear pairing data
+  clearPairingData();
+  
+  // Clear WiFi credentials
+  wifiManager.reset();
+  
+  delay(2000);
+  lcd.clear();
+  lcd.print(0, 0, "Reset Complete!");
+  lcd.print(0, 1, "Restarting...");
+  delay(2000);
+  
+  ESP.restart();
+}
+
 // Check if humidity target is reached (dryer should stop)
 bool isHumidityTargetReached() {
   return humidity <= setpointHumidity;
@@ -487,8 +591,9 @@ bool isHumidityTargetReached() {
 
 // Control drying logic
 void controlDrying() {
+  // ALWAYS turn off relays first if drying is not active
   if (!dryingActive) {
-    // Turn off all heating and disable PID when not drying
+    // Force turn off all heating and disable PID when not drying
     relay1.off();
     relay2.off();
     tempController.setMode(false);  // Set PID to manual mode
@@ -522,7 +627,7 @@ void controlDrying() {
     double pidOutput = tempController.getOutput();
     
     // Control relay1 (main heater) based on PID output
-    if (shouldHeat) {
+    if (shouldHeat && dryingActive) {  // Double-check dryingActive
       relay1.on();
       Serial.print("PID Heating ON - Output: ");
       Serial.print(pidOutput);
@@ -534,8 +639,18 @@ void controlDrying() {
       Serial.println("%");
     }
     
-    // Always run fan (relay2) during drying for air circulation
-    relay2.on();
+    // Only run fan (relay2) during active drying for air circulation
+    if (dryingActive) {
+      relay2.on();
+    } else {
+      relay2.off();
+    }
+  } else {
+    // If PID didn't compute, ensure relays are off when not drying
+    if (!dryingActive) {
+      relay1.off();
+      relay2.off();
+    }
   }
 }
 
@@ -549,12 +664,14 @@ void updateDisplay() {
   switch (currentMode) {
     case SET_TEMP_MODE:
       line0 = "Set Temperature:";
-      line1 = String(setpointTemp, 1) + "C (Use Pot)";
+      line1 = String(setpointTemp, 1) + "C";
+      line2 = "Btn2:+ Btn3:-";
       break;
       
     case SET_HUMIDITY_MODE:
       line0 = "Set Humidity:";
-      line1 = String(setpointHumidity, 1) + "% (Use Pot)";
+      line1 = String(setpointHumidity, 1) + "%";
+      line2 = "Btn2:+ Btn3:-";
       break;
       
     default: // NORMAL_MODE
@@ -590,9 +707,9 @@ void updateDisplay() {
 
 void runTestMenu() {
   int testIndex = 0;
-  const int numTests = 4;
-  void (*tests[])() = {testDHT22, testPotentiometer, testSSR, testLCD};
-  const char* testNames[] = {"DHT22", "Potentiometer", "SSR", "LCD"};
+  const int numTests = 3;
+  void (*tests[])() = {testDHT22, testSSR, testLCD};
+  const char* testNames[] = {"DHT22", "SSR", "LCD"};
   lcd.clear();
   lcd.print(0, 0, "Test Mode");
   lcd.print(0, 1, "Btn: Next Test");
@@ -627,7 +744,6 @@ void setup() {
   button2.begin();
   button3.begin();
   dht.begin();
-  pot.begin();
   relay1.begin();
   relay2.begin();
   lcd.begin();
@@ -708,8 +824,12 @@ void loop() {
       startPairingMode();
     }
     
-    // Check if device was paired
-    checkPairingStatus();
+    // Periodically check if device was paired via Android app
+    static unsigned long lastPairingCheck = 0;
+    if (millis() - lastPairingCheck > 2000) { // Check every 2 seconds
+      checkPairingStatus();
+      lastPairingCheck = millis();
+    }
     
     // Only update if changed (prevent flickering)
     String line0 = "Pairing Code:";
@@ -740,66 +860,86 @@ void loop() {
   
   // === BUTTON HANDLING ===
   
-  // Button 1: Toggle setting mode (temp/humidity)
+  // Button 1: Toggle setting mode (Normal -> Set Temp -> Set Humidity -> Normal)
   if (isButtonPressed(button1, button1LastState, button1LastPress)) {
     if (currentMode == NORMAL_MODE) {
       currentMode = SET_TEMP_MODE;
       modeStartTime = millis();
       lcd.clear();
-      lcd.print(0, 0, "Setting Temp Mode");
-      delay(500);
+      lcd.print(0, 0, "Set Temp Mode");
+      lcd.print(0, 1, "Btn2:+ Btn3:-");
+      lcd.print(0, 2, "Btn1: Next Mode");
+      delay(800);
     } else if (currentMode == SET_TEMP_MODE) {
       currentMode = SET_HUMIDITY_MODE;
       modeStartTime = millis();
       lcd.clear();
-      lcd.print(0, 0, "Setting Humid Mode");
-      delay(500);
+      lcd.print(0, 0, "Set Humidity Mode");
+      lcd.print(0, 1, "Btn2:+ Btn3:-");
+      lcd.print(0, 2, "Btn1: Next Mode");
+      delay(800);
     } else {
       currentMode = NORMAL_MODE;
       lcd.clear();
       lcd.print(0, 0, "Normal Mode");
-      delay(500);
+      lcd.print(0, 1, "Btn2: Start/Stop");
+      delay(800);
     }
   }
   
-  // Button 2: Start/Stop drying
-  if (isButtonPressed(button2, button2LastState, button2LastPress)) {
-    dryingActive = !dryingActive;
-    
-    if (dryingActive) {
-      lcd.clear();
-      lcd.print(0, 0, "Starting Dryer...");
-      lcd.print(0, 1, "Target H: " + String(setpointHumidity, 1) + "%");
-      delay(1000);
-    } else {
-      lcd.clear();
-      lcd.print(0, 0, "Stopping Dryer...");
-      lcd.print(0, 1, "Force Stop");
-      delay(1000);
-    }
-    
-    // Return to normal mode when starting/stopping
-    currentMode = NORMAL_MODE;
+  // === SETPOINT ADJUSTMENT (in setting modes) ===
+  // Must be BEFORE normal mode button handling to prevent conflicts
+  if (currentMode != NORMAL_MODE) {
+    handleSetpointAdjustment();
   }
   
-  // Button 3: Reset WiFi credentials
-  if (isButtonPressed(button3, button3LastState, button3LastPress)) {
-    // Hold button for 3 seconds to confirm reset
-    unsigned long holdStart = millis();
-    lcd.clear();
-    lcd.print(0, 0, "Hold 3s to Reset");
-    lcd.print(0, 1, "WiFi Credentials");
-    
-    while (button3.isPressed() && (millis() - holdStart < 3000)) {
-      delay(100);
+  // Button 2 & 3: Only in NORMAL mode for Start/Stop and WiFi reset
+  if (currentMode == NORMAL_MODE) {
+    // In normal mode, Button 2: Start/Stop drying
+    if (isButtonPressed(button2, button2LastState, button2LastPress)) {
+      dryingActive = !dryingActive;
+      
+      if (dryingActive) {
+        lcd.clear();
+        lcd.print(0, 0, "Starting Dryer...");
+        lcd.print(0, 1, "Target T: " + String(setpointTemp, 1) + "C");
+        lcd.print(0, 2, "Target H: " + String(setpointHumidity, 1) + "%");
+        delay(1500);
+      } else {
+        // Force stop - immediately turn off relays
+        relay1.off();
+        relay2.off();
+        tempController.setMode(false);
+        lcd.clear();
+        lcd.print(0, 0, "Stopping Dryer...");
+        lcd.print(0, 1, "Force Stop");
+        lcd.print(0, 2, "Relays OFF");
+        delay(1000);
+      }
     }
     
-    if (millis() - holdStart >= 3000) {
-      resetWiFiCredentials();
-    } else {
+    // In normal mode, Button 3: Factory Reset (hold 5 seconds)
+    if (isButtonPressed(button3, button3LastState, button3LastPress)) {
+      unsigned long holdStart = millis();
       lcd.clear();
-      lcd.print(0, 0, "Reset Cancelled");
-      delay(1000);
+      lcd.print(0, 0, "Hold 5s for");
+      lcd.print(0, 1, "Factory Reset");
+      lcd.print(0, 2, "WiFi+Pairing");
+      
+      while (button3.isPressed() && (millis() - holdStart < 5000)) {
+        // Show countdown
+        int remaining = 5 - ((millis() - holdStart) / 1000);
+        lcd.print(0, 3, String(remaining) + "s remaining...");
+        delay(100);
+      }
+      
+      if (millis() - holdStart >= 5000) {
+        factoryReset();
+      } else {
+        lcd.clear();
+        lcd.print(0, 0, "Reset Cancelled");
+        delay(1000);
+      }
     }
   }
   
@@ -810,9 +950,6 @@ void loop() {
     lcd.print(0, 0, "Timeout - Normal");
     delay(500);
   }
-  
-  // === POTENTIOMETER HANDLING ===
-  handlePotentiometer();
   
   // === SENSOR READING ===
   if (millis() - lastSensorRead > SENSOR_INTERVAL) {

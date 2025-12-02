@@ -11,7 +11,7 @@ Successfully reduced code size by **50-80KB** while preserving all Firebase func
 ### 1. RiceDryer.ino
 **Removed:**
 - ❌ ArduinoOTA library and all OTA update code
-- ❌ Test mode functions (testDHT22, testPotentiometer, testSSR, testLCD, runTestMenu)
+- ❌ Test mode functions (testDHT22, testSSR, testLCD, runTestMenu)
 - ❌ Serial.begin() and all Serial.println() debug statements
 - ❌ ArduinoJson include (not used, Firebase has own JSON)
 

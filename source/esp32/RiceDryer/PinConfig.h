@@ -13,9 +13,6 @@ const uint8_t BUTTON_3 = 4;
 const uint8_t RELAY_1 = 19;
 const uint8_t RELAY_2 = 18;
 
-// Potentiometer pin (analog input) - Changed from GPIO 5 to GPIO 34 for ADC
-const uint8_t POT_1 = 39;  // GPIO 34 is ADC1_CH6, better for analog reading than GPIO 5
-
 // DHT22 sensor pin
 const uint8_t DHT_PIN = 23;
 
@@ -26,7 +23,6 @@ const uint8_t LCD_ROWS = 4;
 
 // Legacy compatibility (for existing code that uses these names)
 const uint8_t BUTTON_PIN = BUTTON_1;  // Default to first button
-const uint8_t POT_PIN = POT_1;
 const uint8_t SSR_PIN = RELAY_1;     // Default to first relay
 
 #endif // PINCONFIG_H

@@ -9,7 +9,7 @@
 - **Savings: ~30-50KB**
 
 ### 2. **Removed Test Mode Functions** ✅
-- Removed `testDHT22()`, `testPotentiometer()`, `testSSR()`, `testLCD()`
+- Removed `testDHT22()`, `testSSR()`, `testLCD()`
 - Removed `runTestMenu()` function
 - Removed test mode entry check in setup()
 - **Savings: ~5-8KB**
