@@ -237,6 +237,153 @@ The Rice Dryer system follows a modern IoT architecture with five distinct layer
 
 ## Hardware Components
 
+### Complete Bill of Materials
+
+The Rice Dryer system consists of the following components, organized by category:
+
+#### 🔧 Electronics & Control
+
+**Microcontroller & Development:**
+- ESP32 38-pin Development Board
+  - Clock Speed: 240 MHz dual-core
+  - Flash Memory: 4MB
+  - WiFi: 802.11 b/g/n
+  - Operating Voltage: 3.3V
+
+**Sensors:**
+- DHT22 Temperature & Humidity Sensor
+  - Temperature Range: -40°C to 80°C (±0.5°C accuracy)
+  - Humidity Range: 0-100% RH (±2-5% accuracy)
+  - Sampling Rate: 0.5 Hz (once every 2 seconds)
+
+**Display:**
+- I2C LCD 20x4 Display
+  - Display: 20 characters x 4 lines
+  - Backlight: Blue LED
+  - Interface: I2C (SDA, SCL)
+  - Address: 0x27 or 0x3F
+
+**Control Components:**
+- 2x 1-Channel Relay Modules with Optocoupler
+  - Control Voltage: 3-32V DC
+  - Load Voltage: 5-250V AC/DC
+  - Load Current: 10A maximum
+  - Isolation: Optocoupler protection
+- 10K Potentiometer (Linear)
+  - Resistance: 10KΩ
+  - Type: Rotary potentiometer
+  - Usage: Temperature/humidity setpoint adjustment
+- 3x Push Button Switches (Momentary)
+  - Type: SPST momentary contact
+  - Rating: 12V/1A
+  - Usage: Control interface buttons
+
+#### ⚡ Power & Heating System
+
+**Heating & Ventilation:**
+- 2x 12V Exhaust Fans
+  - Voltage: 12V DC
+  - Current: 0.15A each
+  - Airflow: 50 CFM
+  - Usage: Air circulation and moisture removal
+- 12V Heating Element
+  - Voltage: 12V DC
+  - Power: 150W
+  - Type: Ceramic heating element
+  - Usage: Primary heating source
+
+**Power Management:**
+- 12V Solar Charge Controller (MPPT)
+  - Input Voltage: 12-150V DC
+  - Output Voltage: 12V DC
+  - Current: 10A maximum
+  - Efficiency: 95% MPPT tracking
+- 12V 16AH Gel Battery
+  - Voltage: 12V
+  - Capacity: 16AH
+  - Type: Sealed lead-acid gel battery
+  - Cycle Life: 500+ cycles
+- Rocker Switch (Power Switch)
+  - Type: SPST rocker switch
+  - Rating: 12V/10A
+  - Illumination: Red LED indicator
+
+#### 🏗️ Mechanical & Enclosure
+
+**Structural Materials:**
+- 1/2" Nebraska Plywood Sheets
+  - Thickness: 12mm (1/2 inch)
+  - Size: 4ft x 8ft sheets
+  - Type: Marine-grade plywood
+  - Usage: Main enclosure construction
+- Tek Screws (Assorted)
+  - Sizes: #6, #8, #10
+  - Length: 1/2" to 2"
+  - Type: Self-tapping screws
+  - Quantity: 200 pieces
+- Nails (Assorted)
+  - Sizes: 1", 1.5", 2"
+  - Type: Common nails
+  - Quantity: 500 pieces
+
+**Prototyping:**
+- Perf Board (Prototype Board)
+  - Size: 2" x 3"
+  - Hole Pattern: 0.1" grid
+  - Copper Pads: Plated through holes
+  - Usage: Custom circuit prototyping
+
+### MakerLab Electronics Components
+
+The following components were sourced from [MakerLab Electronics](https://makerlab-electronics.com) and are available on Lazada Philippines:
+
+**✅ Available at MakerLab on Lazada:**
+- [ESP32 38-pin Development Board](https://www.lazada.com.ph/products/pdp-i229344573.html)
+- [DHT22 Temperature & Humidity Sensor](https://www.lazada.com.ph/products/pdp-i132179919.html)
+- [I2C LCD 20x4 Display](https://www.lazada.com.ph/products/pdp-i230446570.html)
+- [1-Channel Relay Modules with Optocoupler (2x required)](https://www.lazada.com.ph/products/pdp-i100047427.html)
+- [10K Potentiometer (Linear)](https://www.lazada.com.ph/products/pdp-i3360333706.html)
+- [Push Button Switches (3x required)](https://www.lazada.com.ph/products/pdp-i3015053765.html)
+- Perf Board (Prototype Board) - Not available from MakerLab on Lazada/Shopee
+
+**❌ Not Available at MakerLab:**
+- 12V Exhaust Fans
+- 12V Heating Element
+- 12V Solar Charge Controller
+- 12V 16AH Gel Battery
+- Rocker Switch
+- Tek Screws
+- Nails
+- 1/2" Nebraska Plywood
+
+### Cost Estimate & Sourcing
+
+**Estimated Total Cost: ₱8,500 - ₱12,000**
+
+**By Component Category:**
+
+**Electronics (MakerLab): ₱2,500 - ₱3,500**
+- ESP32 Dev Board: ₱450
+- DHT22 Sensor: ₱150
+- 20x4 I2C LCD: ₱350
+- 2x Relay Modules: ₱200 each = ₱400
+- 10K Potentiometer: ₱25
+- 3x Push Buttons: ₱15 each = ₱45
+- Perf Board: ₱50
+
+**Power & Heating System: ₱4,000 - ₱6,000**
+- 2x 12V Exhaust Fans: ₱250 each = ₱500
+- 12V Heating Element: ₱800
+- 12V Solar Charge Controller: ₱1,200
+- 12V 16AH Gel Battery: ₱2,500
+- Rocker Switch: ₱50
+
+**Mechanical & Enclosure: ₱2,000 - ₱2,500**
+- 1/2" Nebraska Plywood (4x8 sheet): ₱1,800
+- Tek Screws (assorted): ₱150
+- Nails (assorted): ₱100
+- Miscellaneous hardware: ₱450
+
 ### Main Components
 
 ESP32 Development Module:
@@ -255,6 +402,7 @@ DHT22 Temperature and Humidity Sensor:
 - Backlight: Blue LED
 - Interface: I2C (SDA, SCL)
 - Address: 0x27 or 0x3F
+- Note: System uses 20x4 LCD for enhanced display
 
 Solid State Relay (SSR):
 - Control Voltage: 3-32V DC
