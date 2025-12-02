@@ -375,7 +375,7 @@ The following components were sourced from [MakerLab Electronics](https://makerl
 
 ### Cost Estimate & Sourcing
 
-**Estimated Total Cost: ₱8,500 - ₱12,000**
+**Estimated Total Cost: ₱8,170 - ₱11,500**
 
 **By Component Category:**
 
@@ -395,10 +395,11 @@ The following components were sourced from [MakerLab Electronics](https://makerl
 - 12V 16AH Gel Battery: ₱2,500
 - Rocker Switch: ₱50
 
-**Mechanical & Enclosure: ₱2,000 - ₱2,500**
-- 1/2" Nebraska Plywood (4x8 sheet): ₱1,800
-- Tek Screws (assorted): ₱150
-- Nails (assorted): ₱100
+**Mechanical & Enclosure: ₱1,670 - ₱2,000**
+- 1/2" Nebraska Plywood (4x8 sheet): ₱980
+- Tek Screws (assorted): ₱50
+- Nails (assorted): ₱50
+- Hinges (2 pcs): ₱70 each = ₱140
 - Miscellaneous hardware: ₱450
 
 ### Main Components
