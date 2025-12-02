@@ -278,6 +278,8 @@ void startPairingMode() {
   lcd.clear();
   lcd.print(0, 0, "Pairing Code:");
   lcd.print(0, 1, pairingCode.c_str());
+  lcd.print(0, 2, "MAC Address:");
+  lcd.print(0, 3, deviceId.c_str());
 }
 
 // Send data to Firebase
@@ -645,6 +647,8 @@ void setup() {
   } else {
     lcd.print(0, 0, "Pairing Code:");
     lcd.print(0, 1, pairingCode.c_str());
+    lcd.print(0, 2, "MAC Address:");
+    lcd.print(0, 3, deviceId.c_str());
   }
 }
 
@@ -678,6 +682,8 @@ void loop() {
     
     lcd.print(0, 0, "Pairing Code:");
     lcd.print(0, 1, pairingCode.c_str());
+    lcd.print(0, 2, "MAC Address:");
+    lcd.print(0, 3, deviceId.c_str());
     delay(500);
     return;
   }
