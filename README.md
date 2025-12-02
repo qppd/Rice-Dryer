@@ -9,7 +9,7 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 - **Overall Progress:** 98% Complete
 - **Hardware Configuration:** 38-pin ESP32 dev module with DHT22, LCD, dual SSR
 - **Timezone:** Philippines (UTC+8) with NTP synchronization
-- **Last Updated:** November 14, 2025
+- **Last Updated:** December 2, 2025
 
 ## Table of Contents
 
@@ -249,12 +249,14 @@ The Rice Dryer system consists of the following components, organized by categor
   - Flash Memory: 4MB
   - WiFi: 802.11 b/g/n
   - Operating Voltage: 3.3V
+  - Source: [ESP32 38-pin Dev Board](https://www.lazada.com.ph/products/pdp-i229344573-s15172858004.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253Aesp32%252B38%252Bpin%253Bnid%253A229344573%253Bsrc%253ALazadaMainSrp%253Brn%253A6fd81867254265f89c2e4a6e619603ab%253Bregion%253Aph%253Bsku%253A229344573_PH%253Bprice%253A385%253Bclient%253Adesktop%253Bsupplier_id%253A7617%253Bbiz_source%253Ah5_internal%253Bslot%253A0%253Butlog_bucket_id%253A470687%253Basc_category_id%253A5160%253Bitem_id%253A229344573%253Bsku_id%253A15172858004%253Bshop_id%253A1795%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Bulacan&price=385&priceCompare=skuId%3A15172858004%3Bsource%3Alazada-search-voucher%3Bsn%3A6fd81867254265f89c2e4a6e619603ab%3BoriginPrice%3A38500%3BdisplayPrice%3A38500%3BsinglePromotionId%3A-1%3BsingleToolCode%3AmockedSalePrice%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646790061&ratingscore=4.88955223880597&request_id=6fd81867254265f89c2e4a6e619603ab&review=335&sale=2253&search=1&source=search&spm=a2o4l.searchlist.list.0&stock=1)
 
 **Sensors:**
 - DHT22 Temperature & Humidity Sensor
   - Temperature Range: -40°C to 80°C (±0.5°C accuracy)
   - Humidity Range: 0-100% RH (±2-5% accuracy)
   - Sampling Rate: 0.5 Hz (once every 2 seconds)
+  - Source: [DHT22 Sensor](https://www.lazada.com.ph/products/pdp-i132179919.html)
 
 **Display:**
 - I2C LCD 20x4 Display
@@ -262,6 +264,7 @@ The Rice Dryer system consists of the following components, organized by categor
   - Backlight: Blue LED
   - Interface: I2C (SDA, SCL)
   - Address: 0x27 or 0x3F
+  - Source: [I2C LCD 20x4](https://www.lazada.com.ph/products/pdp-i230446570-s1630476280.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253Ai2c%252Blcd%253Bnid%253A230446570%253Bsrc%253ALazadaMainSrp%253Brn%253A02ed4f9439bf787d5a9409c0b3e2b61a%253Bregion%253Aph%253Bsku%253A230446570_PH%253Bprice%253A275%253Bclient%253Adesktop%253Bsupplier_id%253A7617%253Bbiz_source%253Ah5_internal%253Bslot%253A0%253Butlog_bucket_id%253A470687%253Basc_category_id%253A22654%253Bitem_id%253A230446570%253Bsku_id%253A1630476280%253Bshop_id%253A1795%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Bulacan&price=275&priceCompare=skuId%3A1630476280%3Bsource%3Alazada-search-voucher%3Bsn%3A02ed4f9439bf787d5a9409c0b3e2b61a%3BoriginPrice%3A27500%3BdisplayPrice%3A27500%3BsinglePromotionId%3A-1%3BsingleToolCode%3AmockedSalePrice%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646815571&ratingscore=4.898584905660377&request_id=02ed4f9439bf787d5a9409c0b3e2b61a&review=424&sale=3173&search=1&source=search&spm=a2o4l.searchlist.list.0&stock=1)
 
 **Control Components:**
 - 2x 1-Channel Relay Modules with Optocoupler
@@ -269,6 +272,7 @@ The Rice Dryer system consists of the following components, organized by categor
   - Load Voltage: 5-250V AC/DC
   - Load Current: 10A maximum
   - Isolation: Optocoupler protection
+  - Source: [1-Channel Relay Module](https://www.lazada.com.ph/products/pdp-i100047427-s100061336.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253Arelay%253Bnid%253A100047427%253Bsrc%253ALazadaMainSrp%253Brn%253A31afbe38995ae1e991f06176e3c48c52%253Bregion%253Aph%253Bsku%253AUN308ELAA55W4NANPH%253Bprice%253A49%253Bclient%253Adesktop%253Bsupplier_id%253A7617%253Bbiz_source%253Ah5_internal%253Bslot%253A0%253Butlog_bucket_id%253A470687%253Basc_category_id%253A22654%253Bitem_id%253A100047427%253Bsku_id%253A100061336%253Bshop_id%253A1795%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Bulacan&price=49&priceCompare=skuId%3A100061336%3Bsource%3Alazada-search-voucher%3Bsn%3A31afbe38995ae1e991f06176e3c48c52%3BoriginPrice%3A4900%3BdisplayPrice%3A4900%3BsinglePromotionId%3A-1%3BsingleToolCode%3A-1%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646832528&ratingscore=4.938825448613377&request_id=31afbe38995ae1e991f06176e3c48c52&review=1226&sale=13664&search=1&source=search&spm=a2o4l.searchlist.list.0&stock=1)
 - 10K Potentiometer (Linear)
   - Resistance: 10KΩ
   - Type: Rotary potentiometer
@@ -277,36 +281,57 @@ The Rice Dryer system consists of the following components, organized by categor
   - Type: SPST momentary contact
   - Rating: 12V/1A
   - Usage: Control interface buttons
+  - Source: [Tactile Push Buttons](https://www.lazada.com.ph/products/pdp-i1678078643-s7245702074.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253Atactile%252Bbutton%252Bmakerlab%253Bnid%253A1678078643%253Bsrc%253ALazadaMainSrp%253Brn%253Ab0ebb4e98a8cd37540d756d23563d336%253Bregion%253Aph%253Bsku%253A1678078643_PH%253Bprice%253A165%253Bclient%253Adesktop%253Bsupplier_id%253A7617%253Bbiz_source%253Ah5_internal%253Bslot%253A0%253Butlog_bucket_id%253A470687%253Basc_category_id%253A22654%253Bitem_id%253A1678078643%253Bsku_id%253A7245702074%253Bshop_id%253A1795%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Bulacan&price=165&priceCompare=skuId%3A7245702074%3Bsource%3Alazada-search-voucher%3Bsn%3Ab0ebb4e98a8cd37540d756d23563d336%3BoriginPrice%3A16500%3BdisplayPrice%3A16500%3BsinglePromotionId%3A-1%3BsingleToolCode%3AmockedSalePrice%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646856156&ratingscore=4.963636363636364&request_id=b0ebb4e98a8cd37540d756d23563d336&review=55&sale=327&search=1&source=search&spm=a2o4l.searchlist.list.0&stock=1)
 
 #### ⚡ Power & Heating System
 
 **Heating & Ventilation:**
 - 2x 12V Exhaust Fans
+  - Model: HF DC BRUSHLESS FAN 120mm DF1202512SEL
   - Voltage: 12V DC
-  - Current: 0.15A each
-  - Airflow: 50 CFM
+  - Current: 0.16A each
+  - Power: 1.92W each
+  - Airflow: 50 CFM (estimated)
+  - Source: [HF DC BRUSHLESS FAN 120mm](https://www.lazada.com.ph/products/pdp-i3534864736.html)
   - Usage: Air circulation and moisture removal
-- 12V Heating Element
+- 12V Heating Element (Salvaged and Modified)
   - Voltage: 12V DC
-  - Power: 150W
-  - Type: Ceramic heating element
+  - Power: 35W (tested)
+  - Type: Modified car hair dryer heating element (2 elements remaining from original 6)
+  - Source: [12V Car Folding Hair Drier](https://www.lazada.com.ph/products/i4960365287-s28954002950.html?urlFlag=true&mp=1&tradePath=omItm&tradeOrderId=1058448999689708&tradeOrderLineId=1058448999789708&spm=spm%3Aa2o42.order_details.item_title.1)
   - Usage: Primary heating source
 
 **Power Management:**
-- 12V Solar Charge Controller (MPPT)
-  - Input Voltage: 12-150V DC
-  - Output Voltage: 12V DC
-  - Current: 10A maximum
-  - Efficiency: 95% MPPT tracking
-- 12V 16AH Gel Battery
+- MPPT Solar Charge Controller
+  - Model: MPPT 30A/50A/100A 12V/24V Auto Focus Tracking Solar Panel Charge Controller Regulator with Dual
+  - Input Voltage: 12-150V DC (estimated)
+  - Output Voltage: 12V/24V DC
+  - Current Options: 30A, 50A, 100A
+  - Type: MPPT (Maximum Power Point Tracking)
+  - Efficiency: High efficiency auto focus tracking
+  - Source: [MPPT Solar Charge Controller](https://www.lazada.com.ph/products/pdp-i4841729811-s28068159465.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253A12v%252Bsolar%252Bcharge%252Bcontroller%253Bnid%253A4841729811%253Bsrc%253ALazadaMainSrp%253Brn%253A83520258d11af00709341e4cbf15702b%253Bregion%253Aph%253Bsku%253A4841729811_PH%253Bprice%253A374%253Bclient%253Adesktop%253Bsupplier_id%253A500477456198%253Bbiz_source%253Ah5_hp%253Bslot%253A5%253Butlog_bucket_id%253A470687%253Basc_category_id%253A22654%253Bitem_id%253A4841729811%253Bsku_id%253A28068159465%253Bshop_id%253A4528579%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Metro%20Manila~Valenzuela&price=374&priceCompare=skuId%3A28068159465%3Bsource%3Alazada-search-voucher%3Bsn%3A83520258d11af00709341e4cbf15702b%3BoriginPrice%3A37400%3BdisplayPrice%3A37400%3BsinglePromotionId%3A-1%3BsingleToolCode%3AmockedSalePrice%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646389974&ratingscore=4.905349794238683&request_id=83520258d11af00709341e4cbf15702b&review=243&sale=710&search=1&source=search&spm=a2o4l.searchlist.list.5&stock=1)
+  - Usage: Solar panel charge regulation for battery charging
+- 12V Deep Cycle Gel Battery
+  - Model: High-Quality 12V Deep Cycle Gel E-Bike Battery 16AH/25AH for Scooters and Motorcycles
   - Voltage: 12V
-  - Capacity: 16AH
-  - Type: Sealed lead-acid gel battery
-  - Cycle Life: 500+ cycles
-- Rocker Switch (Power Switch)
-  - Type: SPST rocker switch
-  - Rating: 12V/10A
-  - Illumination: Red LED indicator
+  - Capacity Options: 16AH, 25AH
+  - Type: Sealed lead-acid gel battery (deep cycle)
+  - Cycle Life: High cycle life for deep discharge
+  - Source: [12V Gel Battery](https://www.lazada.com.ph/products/high-quality-12v-deep-cycle-gel-e-bike-battery-16ah25ah-for-scooters-and-motorcycles-i4913678464-s28636228269.html)
+  - Usage: Energy storage for the 12V system
+- SPST KCD11 Miniature Rocker Switch
+  - Model: SPST KCD11 Miniature Rocker Switch - 5Pcs
+  - Type: SPST rocker switch (2 Pin or 3 Pin options)
+  - Rating: 12V/10A (estimated)
+  - Illumination: Red LED indicator (if applicable)
+  - Quantity: 5 pieces
+  - Source: [Rocker Switch](https://www.lazada.com.ph/products/pdp-i3015510213-s14819033850.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253Aswitch%253Bnid%253A3015510213%253Bsrc%253AlazadaInShopSrp%253Brn%253A70032a1d52c2a7f02640eb5846875d64%253Bregion%253Aph%253Bsku%253A3015510213_PH%253Bprice%253A39%253Bclient%253Adesktop%253Bsupplier_id%253A7617%253Bbiz_source%253Ahttps%253A%252F%252Fwww.lazada.com.ph%252F%253Bslot%253A0%253Butlog_bucket_id%253A470687%253Basc_category_id%253A22651%253Bitem_id%253A3015510213%253Bsku_id%253A14819033850%253Bshop_id%253A1795%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Bulacan&price=39&priceCompare=skuId%3A14819033850%3Bsource%3Alazada-search-voucher-in-shop%3Bsn%3A70032a1d52c2a7f02640eb5846875d64%3BoriginPrice%3A3900%3BdisplayPrice%3A3900%3BsinglePromotionId%3A-1%3BsingleToolCode%3A-1%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646551164&ratingscore=4.956175298804781&request_id=70032a1d52c2a7f02640eb5846875d64&review=251&sale=1347&search=1&spm=a2o4l.store_keyword.list.0&stock=1)
+  - Usage: Power switch for the 12V system
+- 12V Power Adapter
+  - Output Options: 12V 2A
+  - Type: True rated power adapter
+  - Source: [12V 2A Power Adapter](https://www.lazada.com.ph/products/i136286593-s153295621.html?urlFlag=true&mp=1&tradePath=omItm&tradeOrderId=1043938087889708&tradeOrderLineId=1043938090789708&spm=spm%3Aa2o42.order_details.item_title.1)
+  - Usage: Main power supply for 12V system
 
 #### 🏗️ Mechanical & Enclosure
 
@@ -332,6 +357,7 @@ The Rice Dryer system consists of the following components, organized by categor
   - Hole Pattern: 0.1" grid
   - Copper Pads: Plated through holes
   - Usage: Custom circuit prototyping
+  - Source: [Perf Board](https://www.lazada.com.ph/products/pdp-i4835206547-s28752341734.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253Aperf%252Bboard%253Bnid%253A4835206547%253Bsrc%253ALazadaMainSrp%253Brn%253A3b9134d79ee3bfa13aca11afe113d7d5%253Bregion%253Aph%253Bsku%253A4835206547_PH%253Bprice%253A119%253Bclient%253Adesktop%253Bsupplier_id%253A500170326121%253Bbiz_source%253Ah5_internal%253Bslot%253A11%253Butlog_bucket_id%253A470687%253Basc_category_id%253A22654%253Bitem_id%253A4835206547%253Bsku_id%253A28752341734%253Bshop_id%253A1901829%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Benguet&price=119&priceCompare=skuId%3A28752341734%3Bsource%3Alazada-search-voucher%3Bsn%3A3b9134d79ee3bfa13aca11afe113d7d5%3BoriginPrice%3A11900%3BdisplayPrice%3A11900%3BsinglePromotionId%3A-1%3BsingleToolCode%3A-1%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646878755&ratingscore=&request_id=3b9134d79ee3bfa13aca11afe113d7d5&review=&sale=5&search=1&source=search&spm=a2o4l.searchlist.list.11&stock=1)
 
 ### MakerLab Electronics Components
 
@@ -342,19 +368,10 @@ The following components were sourced from [MakerLab Electronics](https://makerl
 - [DHT22 Temperature & Humidity Sensor](https://www.lazada.com.ph/products/pdp-i132179919.html)
 - [I2C LCD 20x4 Display](https://www.lazada.com.ph/products/pdp-i230446570.html)
 - [1-Channel Relay Modules with Optocoupler (2x required)](https://www.lazada.com.ph/products/pdp-i100047427.html)
-- [10K Potentiometer (Linear)](https://www.lazada.com.ph/products/pdp-i3360333706.html)
-- [Push Button Switches (3x required)](https://www.lazada.com.ph/products/pdp-i3015053765.html)
-- Perf Board (Prototype Board) - Not available from MakerLab on Lazada/Shopee
 
-**❌ Not Available at MakerLab:**
-- 12V Exhaust Fans
-- 12V Heating Element
-- 12V Solar Charge Controller
-- 12V 16AH Gel Battery
-- Rocker Switch
-- Tek Screws
-- Nails
-- 1/2" Nebraska Plywood
+- [Push Button Switches (3x required)](https://www.lazada.com.ph/products/pdp-i3015053765.html)
+
+
 
 ### Cost Estimate & Sourcing
 
