@@ -1,6 +1,35 @@
 // RiceDryer.ino
 // Main Arduino sketch for RiceDryer ESP32 project
 
+// ============================================================================
+// FIRMWARE OPERATION MODE CONFIGURATION
+// ============================================================================
+// Uncomment the line below to enable DEVELOPMENT_MODE for isolated hardware testing
+// Comment it out to use PRODUCTION_MODE (full WiFi + Firebase + PID functionality)
+//
+// 🔧 DEVELOPMENT_MODE:
+//   - No WiFi, Firebase, or pairing required
+//   - Serial command-based hardware testing only
+//   - Test LCD, DHT22 sensor, and bistable relays (GPIO 19 & 18)
+//   - Simple commands: LCD_TEST, DHT_READ, RELAY_HEATER_ON/OFF, RELAY_BLOWER_ON/OFF
+//   - No production logic (PID, auto-stop, remote commands)
+//
+// 🚀 PRODUCTION_MODE (default):
+//   - Full WiFi + captive portal setup
+//   - Firebase real-time sync and pairing system
+//   - PID temperature control with auto-stop at target humidity
+//   - 3-button UI with Normal/Set Temp/Set Humidity modes
+//   - Historical logging and remote commands
+//   - NTP time synchronization
+//   - Safety logic and sensor validation
+//
+// ============================================================================
+
+//#define DEVELOPMENT_MODE  // Uncomment for testing, comment for production
+
+// ============================================================================
+
+#ifndef DEVELOPMENT_MODE
 // WiFi and Network
 #include <WiFi.h>
 #include <time.h>
@@ -14,8 +43,9 @@
 // Custom modules
 #include "WiFiManagerCustom.h"
 #include "FirebaseConfig.h"
+#endif
 
-// Include component headers
+// Include component headers (needed for both modes)
 #include "Button.h"
 #include "DHT22Sensor.h"
 #include "SSR.h"
@@ -24,6 +54,11 @@
 
 // Pin configuration
 #include "PinConfig.h"
+
+#ifndef DEVELOPMENT_MODE
+// ============================================================================
+// PRODUCTION MODE - Variables and Objects
+// ============================================================================
 
 // Firebase objects
 FirebaseData fbdo;
@@ -107,7 +142,10 @@ bool button3LastState = false;
 unsigned long button1LastPress = 0;
 unsigned long button2LastPress = 0;
 unsigned long button3LastPress = 0;
+
 const unsigned long BUTTON_DEBOUNCE = 200; // 200ms debounce
+
+#endif
 
 // Generate unique device ID from MAC address
 String getDeviceId() {
@@ -735,7 +773,161 @@ void runTestMenu() {
   }
 }
 
-void setup() {
+#ifdef DEVELOPMENT_MODE
+// ============================================================================
+// DEVELOPMENT MODE - Hardware Testing Functions
+// ============================================================================
+
+// Development mode components (only LCD, DHT22, and relays)
+DHT22Sensor devDHT(DHT_PIN);
+SSR devHeater(RELAY_1);  // GPIO 19 - Heater relay
+SSR devBlower(RELAY_2);  // GPIO 18 - Blower relay
+LCDDisplay devLCD(LCD_ADDR, LCD_COLS, LCD_ROWS);
+
+// Handle serial commands for development testing
+void handleDevelopmentSerialCommands() {
+  if (!Serial.available()) return;
+  
+  String command = Serial.readStringUntil('\n');
+  command.trim();
+  command.toUpperCase();
+  
+  Serial.println("Received: " + command);
+  
+  if (command == "LCD_TEST") {
+    devLCD.clear();
+    devLCD.print(0, 0, "LCD TEST");
+    devLCD.print(0, 1, "Line 2: OK");
+    devLCD.print(0, 2, "Line 3: OK");
+    devLCD.print(0, 3, "Line 4: OK");
+    Serial.println("LCD test executed");
+    
+  } else if (command == "LCD_CLEAR") {
+    devLCD.clear();
+    Serial.println("LCD cleared");
+    
+  } else if (command.startsWith("LCD_PRINT:")) {
+    String text = command.substring(10);
+    devLCD.clear();
+    devLCD.print(0, 0, text.c_str());
+    Serial.println("LCD printed: " + text);
+    
+  } else if (command == "DHT_READ") {
+    float temp = devDHT.readTemperature();
+    float hum = devDHT.readHumidity();
+    
+    char buffer[80];
+    snprintf(buffer, sizeof(buffer), "Temperature: %.1f C, Humidity: %.1f %%", temp, hum);
+    Serial.println(buffer);
+    
+    devLCD.clear();
+    devLCD.print(0, 0, "DHT22 Reading:");
+    devLCD.print(0, 1, String("Temp: ") + String(temp, 1) + " C");
+    devLCD.print(0, 2, String("Hum:  ") + String(hum, 1) + " %");
+    
+    if (isnan(temp) || isnan(hum)) {
+      devLCD.print(0, 3, "ERROR: Check DHT22");
+      Serial.println("ERROR: Invalid sensor reading");
+    }
+    
+  } else if (command == "RELAY_HEATER_ON") {
+    devHeater.on();
+    Serial.println("Heater relay (GPIO 19) turned ON");
+    devLCD.clear();
+    devLCD.print(0, 0, "Heater: ON");
+    devLCD.print(0, 1, "GPIO 19 -> LOW");
+    
+  } else if (command == "RELAY_HEATER_OFF") {
+    devHeater.off();
+    Serial.println("Heater relay (GPIO 19) turned OFF");
+    devLCD.clear();
+    devLCD.print(0, 0, "Heater: OFF");
+    devLCD.print(0, 1, "GPIO 19 -> HIGH");
+    
+  } else if (command == "RELAY_BLOWER_ON") {
+    devBlower.on();
+    Serial.println("Blower relay (GPIO 18) turned ON");
+    devLCD.clear();
+    devLCD.print(0, 0, "Blower: ON");
+    devLCD.print(0, 1, "GPIO 18 -> LOW");
+    
+  } else if (command == "RELAY_BLOWER_OFF") {
+    devBlower.off();
+    Serial.println("Blower relay (GPIO 18) turned OFF");
+    devLCD.clear();
+    devLCD.print(0, 0, "Blower: OFF");
+    devLCD.print(0, 1, "GPIO 18 -> HIGH");
+    
+  } else if (command == "STATUS") {
+    Serial.println("=== DEVELOPMENT MODE STATUS ===");
+    Serial.print("Heater Relay (GPIO 19): ");
+    Serial.println(devHeater.isOn() ? "ON" : "OFF");
+    Serial.print("Blower Relay (GPIO 18): ");
+    Serial.println(devBlower.isOn() ? "ON" : "OFF");
+    
+    float temp = devDHT.readTemperature();
+    float hum = devDHT.readHumidity();
+    Serial.print("Temperature: ");
+    Serial.print(temp);
+    Serial.println(" C");
+    Serial.print("Humidity: ");
+    Serial.print(hum);
+    Serial.println(" %");
+    
+  } else if (command == "HELP") {
+    Serial.println("\n=== DEVELOPMENT MODE COMMANDS ===");
+    Serial.println("LCD_TEST          - Test all LCD lines");
+    Serial.println("LCD_CLEAR         - Clear LCD display");
+    Serial.println("LCD_PRINT:<text>  - Print text on LCD");
+    Serial.println("DHT_READ          - Read DHT22 sensor");
+    Serial.println("RELAY_HEATER_ON   - Turn heater relay ON (GPIO 19)");
+    Serial.println("RELAY_HEATER_OFF  - Turn heater relay OFF");
+    Serial.println("RELAY_BLOWER_ON   - Turn blower relay ON (GPIO 18)");
+    Serial.println("RELAY_BLOWER_OFF  - Turn blower relay OFF");
+    Serial.println("STATUS            - Show current hardware status");
+    Serial.println("HELP              - Show this help message");
+    Serial.println("=================================\n");
+    
+  } else {
+    Serial.println("Unknown command. Type HELP for available commands.");
+  }
+}
+
+// Main development mode loop
+void runDevelopmentMode() {
+  // Initialize only the hardware components needed for testing
+  devDHT.begin();
+  devHeater.begin();
+  devBlower.begin();
+  devLCD.begin();
+  
+  devLCD.clear();
+  devLCD.print(0, 0, "DEVELOPMENT MODE");
+  devLCD.print(0, 1, "Hardware Test");
+  devLCD.print(0, 2, "Open Serial @115200");
+  devLCD.print(0, 3, "Type HELP");
+  
+  Serial.println("\n\n=================================");
+  Serial.println("  DEVELOPMENT MODE ACTIVATED");
+  Serial.println("=================================");
+  Serial.println("WiFi, Firebase, and production");
+  Serial.println("logic are DISABLED.");
+  Serial.println("\nType HELP for available commands.");
+  Serial.println("=================================\n");
+  
+  // Simple loop - just handle serial commands
+  while (true) {
+    handleDevelopmentSerialCommands();
+    delay(50);
+  }
+}
+
+#else
+// ============================================================================
+// PRODUCTION MODE - Full Implementation Functions
+// ============================================================================
+
+void productionSetup() {
   Serial.begin(115200);
   randomSeed(analogRead(0));
   
@@ -799,7 +991,7 @@ void setup() {
   }
 }
 
-void loop() {
+void productionLoop() {
   // Check WiFi connection
   if (!wifiManager.isConnected()) {
     wifiConnected = false;
@@ -990,4 +1182,33 @@ void loop() {
   updateDisplay();
   
   delay(200);
+}
+
+#endif // DEVELOPMENT_MODE
+
+// ============================================================================
+// MAIN ENTRY POINTS - Mode Dispatcher
+// ============================================================================
+
+void setup() {
+#ifdef DEVELOPMENT_MODE
+  // Development mode: Initialize serial and run hardware testing
+  Serial.begin(115200);
+  delay(1000);
+  runDevelopmentMode();  // This function never returns (infinite loop)
+#else
+  // Production mode: Full functionality
+  productionSetup();
+#endif
+}
+
+void loop() {
+#ifdef DEVELOPMENT_MODE
+  // Should never reach here (runDevelopmentMode has infinite loop)
+  // But just in case:
+  delay(1000);
+#else
+  // Production mode: Main control loop
+  productionLoop();
+#endif
 }

@@ -357,6 +357,12 @@ The Rice Dryer system consists of the following components, organized by categor
   - Usage: Custom circuit prototyping
   - Source: [Perf Board](https://www.lazada.com.ph/products/pdp-i4835206547-s28752341734.html?c=&channelLpJumpArgs=&clickTrackInfo=query%253Aperf%252Bboard%253Bnid%253A4835206547%253Bsrc%253ALazadaMainSrp%253Brn%253A3b9134d79ee3bfa13aca11afe113d7d5%253Bregion%253Aph%253Bsku%253A4835206547_PH%253Bprice%253A119%253Bclient%253Adesktop%253Bsupplier_id%253A500170326121%253Bbiz_source%253Ah5_internal%253Bslot%253A11%253Butlog_bucket_id%253A470687%253Basc_category_id%253A22654%253Bitem_id%253A4835206547%253Bsku_id%253A28752341734%253Bshop_id%253A1901829%253BtemplateInfo%253A107881_D_E%2523-1_A3_C%2523&freeshipping=1&fs_ab=2&fuse_fs=&lang=en&location=Benguet&price=119&priceCompare=skuId%3A28752341734%3Bsource%3Alazada-search-voucher%3Bsn%3A3b9134d79ee3bfa13aca11afe113d7d5%3BoriginPrice%3A11900%3BdisplayPrice%3A11900%3BsinglePromotionId%3A-1%3BsingleToolCode%3A-1%3BvoucherPricePlugin%3A0%3Btimestamp%3A1764646878755&ratingscore=&request_id=3b9134d79ee3bfa13aca11afe113d7d5&review=&sale=5&search=1&source=search&spm=a2o4l.searchlist.list.11&stock=1)
 
+### Wiring Diagram
+
+![Rice Dryer Wiring Diagram](diagram/Wiring.png)
+
+**Download Fritzing File:** [Wiring.fzz](diagram/Wiring.fzz)
+
 ### MakerLab Electronics Components
 
 The following components were sourced from [MakerLab Electronics](https://makerlab-electronics.com) and are available on Lazada Philippines:
