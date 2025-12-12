@@ -8,8 +8,8 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 - **Android Application:** 98% Complete ✅ (Full authentication, device management, real-time monitoring, charts with fixes)
 - **Hardware Configuration:** 38-pin ESP32 dev module with DHT22, 20x4 LCD, dual SSR (low trigger)
 - **Timezone:** Philippines (UTC+8) with NTP synchronization
-- **Last Updated:** December 2, 2025
-- **3D Models:** Pending (Only remaining item for complete project)
+- **Last Updated:** December 12, 2025
+- **3D Models:** Complete ✅ (Professional enclosure design with multiple views)
 
 ## Table of Contents
 
@@ -17,7 +17,8 @@ Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android appli
 2. [Quick Start](#quick-start)
 3. [System Architecture](#system-architecture)
 4. [Hardware Components](#hardware-components)
-5. [Software Components](#software-components)
+5. [3D Models](#3d-models)
+6. [Software Components](#software-components)
 6. [Security and Credentials](#security-and-credentials)
 7. [Installation Guide](#installation-guide)
 8. [Device Pairing](#device-pairing)
@@ -463,6 +464,44 @@ Control Buttons:
 - Button 1 (Setting Mode) -> GPIO 17 + GND (internal pull-up)
 - Button 2 (Start/Stop) -> GPIO 16 + GND (internal pull-up)
 - Button 3 (WiFi Reset) -> GPIO 4 + GND (internal pull-up)
+
+## 3D Models
+
+The Rice Dryer features a professional 3D-designed enclosure with optimized component placement and airflow design.
+
+### Enclosure Views
+
+#### Full Assembly Views
+![Rice Dryer Full View](model/Rice_Dryer_Full_View.png)
+*Complete assembly with all components installed*
+
+![Rice Dryer Full View 2](model/Rice_Dryer_Full_View_2.png)
+*Alternative full view showing different angle*
+
+#### Internal Component Views
+![Rice Dryer No Cover](model/Rice_Dryer_No_Cover.png)
+*Internal layout without top cover*
+
+![Rice Dryer No Cover 2](model/Rice_Dryer_No_Cover_2.png)
+*Detailed internal component arrangement*
+
+#### Orthogonal Views
+![Rice Dryer Front View](model/Rice_Dryer_Front_View.png)
+*Front elevation view*
+
+![Rice Dryer Side View](model/Rice_Dryer_Side_View.png)
+*Side elevation view*
+
+![Rice Dryer Top View](model/Rice_Dryer_Top_View.png)
+*Top plan view*
+
+### Design Features
+
+- **Optimized Airflow**: Strategic fan placement for efficient moisture removal
+- **Component Accessibility**: Easy access panels for maintenance
+- **Professional Finish**: Clean aesthetic with functional design
+- **Modular Construction**: Easy assembly and disassembly
+- **Thermal Management**: Proper ventilation for electronic components
 
 ## Software Components
 
