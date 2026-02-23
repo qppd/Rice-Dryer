@@ -1,6 +1,6 @@
 # RiceDryer ESP32 & Android IoT System
 
-Professional IoT-enabled Rice Dryer system with ESP32 hardware and Android application for remote monitoring and control via Firebase Realtime Database.
+IoT-enabled Rice Dryer system with ESP32 hardware and Android application for remote monitoring and control via Firebase Realtime Database.
 
 ## Project Status
 
