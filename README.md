@@ -2,15 +2,6 @@
 
 IoT-enabled Rice Dryer system with ESP32 hardware and Android application for remote monitoring and control via Firebase Realtime Database.
 
-## Project Status
-
-- **ESP32 Firmware:** 100% Complete ✅ (Enhanced with NTP time sync, 3-button interface & dual relay control)
-- **Android Application:** 98% Complete ✅ (Full authentication, device management, real-time monitoring, charts with fixes)
-- **Hardware Configuration:** 38-pin ESP32 dev module with DHT22, 20x4 LCD, dual SSR (low trigger)
-- **Timezone:** Philippines (UTC+8) with NTP synchronization
-- **Last Updated:** December 12, 2025
-- **3D Models:** Complete ✅ (Professional enclosure design with multiple views)
-
 ## Table of Contents
 
 1. [Features](#features)
