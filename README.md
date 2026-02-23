@@ -28,7 +28,7 @@ IoT-enabled Rice Dryer system with ESP32 hardware and Android application for re
 
 ## Features
 
-### ESP32 Core Features (100% Complete)
+### ESP32 Core Features
 
 #### Hardware Control
 - **3-Button Interface**: Setting mode toggle, start/stop control, WiFi reset functionality
